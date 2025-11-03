@@ -1,0 +1,53 @@
+{
+    "name": "olexin-pro/data-processing-pipeline",
+    "description": "A robust, strictly-typed, and extensible data processing pipeline system for Laravel applications. Process data through a chain of isolated steps with built-in conflict resolution, priority handling, and optional execution history tracking.",
+    "keywords": ["laravel", "laravel-packages", "pipeline", "data-processing", "processing", "data"],
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^10.0 || ^11.0 || ^12.0",
+        "illuminate/contracts": "^10.0 || ^11.0 || ^12.0",
+        "illuminate/database": "^10.0 || ^11.0 || ^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.6",
+        "fakerphp/faker": "^1.23",
+        "phpunit/phpunit": "^12.4.2",
+        "laravel/pint": "^1.25",
+        "phpstan/phpstan": "^2.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "DataProcessingPipeline\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DataProcessingPipeline\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "analyse": [
+            "./vendor/bin/phpstan analyse --memory-limit 2G"
+        ],
+        "pint": [
+            "./vendor/bin/pint --preset psr12"
+        ]
+    },
+    "authors": [
+        {
+            "name": "ol3x1n",
+            "email": "aizharolexin@yandex.kz"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DataProcessingPipeline\\PipelineServiceProvider"
+            ]
+        }
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev"
+}
