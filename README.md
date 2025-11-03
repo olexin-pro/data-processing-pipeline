@@ -533,12 +533,11 @@ This package is open-sourced software licensed under the [MIT license](LICENSE).
 
 ## 🙏 Credits
 
-- [Your Name](https://github.com/your-username)
-- [All Contributors](../../contributors)
+- [Aizharyk Olexin](https://github.com/olexin-pro)
 
 ## 📧 Support
 
-For support, please open an issue on GitHub or contact [your-email@example.com](mailto:your-email@example.com)
+For support, please open an issue on GitHub or contact [aizharyk@olexin.pro](mailto:aizharyk@olexin.pro)
 
 ---
 
