@@ -18,7 +18,6 @@ final class PipelineRunner implements PipelineRunnerInterface
      */
     public function __construct(
         private array $steps,
-        private ConflictResolverInterface $conflictResolver,
         private ?PipelineHistoryRecorderInterface $recorder = null
     ) {
     }
@@ -61,6 +60,12 @@ final class PipelineRunner implements PipelineRunnerInterface
     public function addStep(PipelineStepInterface $step): self
     {
         $this->steps[] = $step;
+        return $this;
+    }
+
+    public function setRecorder(?PipelineHistoryRecorderInterface $recorder): self
+    {
+        $this->recorder = $recorder;
         return $this;
     }
 }

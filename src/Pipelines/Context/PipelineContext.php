@@ -7,18 +7,21 @@ namespace DataProcessingPipeline\Pipelines\Context;
 use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
-use DataProcessingPipeline\Pipelines\Resolution\ConflictResolver;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class PipelineContext implements PipelineContextInterface, \JsonSerializable
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function __construct(
         public readonly array $payload,
         public array $results = [],
         public array $meta = [],
         private ?ConflictResolverInterface $conflictResolver = null
     ) {
-        $this->conflictResolver = $conflictResolver ?? new ConflictResolver();
+        $this->conflictResolver = $conflictResolver ?? app()->make(ConflictResolverInterface::class);
     }
 
     public function addResult(PipelineResultInterface $result): void
@@ -39,6 +42,11 @@ final class PipelineContext implements PipelineContextInterface, \JsonSerializab
         return $this->results[$key] ?? null;
     }
 
+    public function getContent(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->payload, $key, $default);
+    }
+
     public function hasResult(string $key): bool
     {
         return isset($this->results[$key]);
@@ -51,6 +59,11 @@ final class PipelineContext implements PipelineContextInterface, \JsonSerializab
             'results' => array_map(fn ($r) => $r->jsonSerialize(), $this->results),
             'meta' => $this->meta,
         ];
+    }
+
+    public function toContent(): array
+    {
+        return array_map(fn (PipelineResultInterface $r) => $r->getData(), $this->results);
     }
 
     public function jsonSerialize(): array
@@ -71,5 +84,21 @@ final class PipelineContext implements PipelineContextInterface, \JsonSerializab
         }
 
         return $context;
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public static function make(
+        array $payload,
+        array $meta = [],
+        ?ConflictResolverInterface $conflictResolver = null
+    ): self {
+        return new self(
+            payload: $payload,
+            results: [],
+            meta: $meta,
+            conflictResolver: $conflictResolver ?? app()->make(ConflictResolverInterface::class)
+        );
     }
 }

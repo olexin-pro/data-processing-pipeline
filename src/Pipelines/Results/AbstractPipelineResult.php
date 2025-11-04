@@ -12,7 +12,7 @@ abstract class AbstractPipelineResult implements PipelineResultInterface
 {
     public function __construct(
         protected string $key,
-        protected array $data,
+        protected int|float|array|bool|string|null $data,
         protected ConflictPolicy $policy = ConflictPolicy::MERGE,
         protected int $priority = 10,
         protected string $provenance = '',
@@ -26,7 +26,7 @@ abstract class AbstractPipelineResult implements PipelineResultInterface
         return $this->key;
     }
 
-    public function getData(): array
+    public function getData(): int|float|array|bool|string|null
     {
         return $this->data;
     }

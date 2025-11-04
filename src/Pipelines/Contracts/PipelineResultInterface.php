@@ -11,7 +11,7 @@ use JsonSerializable;
 interface PipelineResultInterface extends JsonSerializable
 {
     public function getKey(): string;
-    public function getData(): array;
+    public function getData(): int|float|array|bool|string|null;
     public function getPolicy(): ConflictPolicy;
     public function getPriority(): int;
     public function getProvenance(): string;
