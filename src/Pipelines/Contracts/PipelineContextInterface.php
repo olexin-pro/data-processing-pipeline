@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DataProcessingPipeline\Pipelines\Contracts;
 
-interface PipelineContextInterface
+interface PipelineContextInterface extends \JsonSerializable
 {
     public function addResult(PipelineResultInterface $result): void;
 
@@ -14,7 +14,7 @@ interface PipelineContextInterface
     public function getContent(string $key, mixed $default = null): mixed;
 
     public function toArray(): array;
-    public function toContent(): array;
+    public function build(): array;
 
     public static function fromArray(array $data): PipelineContextInterface;
 }

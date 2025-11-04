@@ -10,7 +10,7 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use Illuminate\Contracts\Container\BindingResolutionException;
 
-final class PipelineContext implements PipelineContextInterface, \JsonSerializable
+final class PipelineContext implements PipelineContextInterface
 {
     /**
      * @throws BindingResolutionException
@@ -61,7 +61,7 @@ final class PipelineContext implements PipelineContextInterface, \JsonSerializab
         ];
     }
 
-    public function toContent(): array
+    public function build(): array
     {
         return array_map(fn (PipelineResultInterface $r) => $r->getData(), $this->results);
     }
