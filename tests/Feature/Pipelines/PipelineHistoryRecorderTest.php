@@ -8,6 +8,7 @@ use DataProcessingPipeline\Pipelines\Context\PipelineContext;
 use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use DataProcessingPipeline\Pipelines\Resolution\ConflictResolver;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\SimpleStep;
@@ -17,6 +18,9 @@ final class PipelineHistoryRecorderTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_records_pipeline_run_to_database(): void
     {
         $context = new PipelineContext(['input' => 'test']);
@@ -24,7 +28,6 @@ final class PipelineHistoryRecorderTest extends TestCase
 
         $runner = new PipelineRunner(
             [new SimpleStep()],
-            new ConflictResolver(),
             $recorder
         );
 
@@ -36,6 +39,9 @@ final class PipelineHistoryRecorderTest extends TestCase
         ]);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_records_individual_steps(): void
     {
         $context = new PipelineContext([]);
@@ -43,7 +49,6 @@ final class PipelineHistoryRecorderTest extends TestCase
 
         $runner = new PipelineRunner(
             [new SimpleStep(), new SimpleStep()],
-            new ConflictResolver(),
             $recorder
         );
 
@@ -61,6 +66,9 @@ final class PipelineHistoryRecorderTest extends TestCase
         $this->assertEquals('ok', $steps[0]->status);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_does_not_record_when_disabled(): void
     {
         $context = new PipelineContext([]);
@@ -68,7 +76,6 @@ final class PipelineHistoryRecorderTest extends TestCase
 
         $runner = new PipelineRunner(
             [new SimpleStep()],
-            new ConflictResolver(),
             $recorder
         );
 

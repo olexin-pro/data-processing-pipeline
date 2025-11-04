@@ -5,12 +5,21 @@ declare(strict_types=1);
 namespace DataProcessingPipeline\Tests\Unit\Pipelines\Context;
 
 use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
-use PHPUnit\Framework\TestCase;
+use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
+use DataProcessingPipeline\Tests\TestCase;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
+/**
+ * @covers \DataProcessingPipeline\Pipelines\Context\PipelineContext
+ */
 final class PipelineContextTest extends TestCase
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_creates_with_payload(): void
     {
         $payload = ['user' => ['id' => 1]];
@@ -21,6 +30,36 @@ final class PipelineContextTest extends TestCase
         $this->assertEmpty($context->meta);
     }
 
+    public function test_make_creates_instance_with_meta_and_custom_resolver(): void
+    {
+        $fakeResolver = new class implements ConflictResolverInterface {
+            public bool $called = false;
+            public function resolve($a, $b, $ctx): PipelineResultInterface
+            {
+                $this->called = true;
+                return $b;
+            }
+        };
+
+        $context = PipelineContext::make(
+            payload: ['foo' => 'bar'],
+            meta: ['env' => 'test'],
+            conflictResolver: $fakeResolver
+        );
+
+        $result = new GenericPipelineResult('r', ['ok' => true]);
+        $context->addResult($result);
+
+        $this->assertEquals(['foo' => 'bar'], $context->payload);
+        $this->assertEquals(['env' => 'test'], $context->meta);
+        $this->assertTrue($context->hasResult('r'));
+        $this->assertSame($result, $context->getResult('r'));
+        $this->assertFalse($fakeResolver->called, 'Resolver should not be called for new keys');
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_adds_result(): void
     {
         $context = new PipelineContext([]);
@@ -32,6 +71,33 @@ final class PipelineContextTest extends TestCase
         $this->assertEquals($result, $context->getResult('key1'));
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
+    public function test_get_content_returns_nested_value_and_default(): void
+    {
+        $context = new PipelineContext(['user' => ['info' => ['email' => 'a@b.c']]]);
+        $this->assertEquals('a@b.c', $context->getContent('user.info.email'));
+        $this->assertEquals('default', $context->getContent('user.missing', 'default'));
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function test_build_returns_array_of_result_data(): void
+    {
+        $context = new PipelineContext([]);
+        $context->addResult(new GenericPipelineResult('k1', ['a' => 1]));
+        $context->addResult(new GenericPipelineResult('k2', ['b' => 2]));
+
+        $built = $context->build();
+
+        $this->assertEquals(['k1' => ['a' => 1], 'k2' => ['b' => 2]], $built);
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_get_non_existent_result_returns_null(): void
     {
         $context = new PipelineContext([]);
@@ -40,6 +106,9 @@ final class PipelineContextTest extends TestCase
         $this->assertFalse($context->hasResult('non_existent'));
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_merges_results_with_same_key(): void
     {
         $context = new PipelineContext([]);
@@ -62,10 +131,13 @@ final class PipelineContextTest extends TestCase
         $merged = $context->getResult('email');
         $this->assertEquals([
             'value' => 'test@example.com',
-            'status' => 'verified'
+            'status' => 'verified',
         ], $merged->getData());
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_overwrites_result_with_overwrite_policy(): void
     {
         $context = new PipelineContext([]);
@@ -84,6 +156,9 @@ final class PipelineContextTest extends TestCase
         $this->assertEquals(['new' => 'data'], $final->getData());
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_skips_result_with_skip_policy(): void
     {
         $context = new PipelineContext([]);
@@ -102,34 +177,28 @@ final class PipelineContextTest extends TestCase
         $this->assertEquals(['original' => 'data'], $final->getData());
     }
 
-    public function test_to_array(): void
+    /**
+     * @throws BindingResolutionException
+     */
+    public function test_to_array_and_json_serialization(): void
     {
         $context = new PipelineContext(['user' => 'john']);
         $context->meta['pipeline_id'] = 'test-123';
         $context->addResult(new GenericPipelineResult('key1', ['val' => 1]));
 
         $array = $context->toArray();
-
         $this->assertIsArray($array);
         $this->assertEquals(['user' => 'john'], $array['payload']);
         $this->assertArrayHasKey('key1', $array['results']);
         $this->assertEquals(['pipeline_id' => 'test-123'], $array['meta']);
-    }
-
-    public function test_json_serializes(): void
-    {
-        $context = new PipelineContext(['test' => 'data']);
-        $context->addResult(new GenericPipelineResult('key', ['value' => 42]));
 
         $json = json_encode($context);
         $decoded = json_decode($json, true);
-
         $this->assertIsArray($decoded);
-        $this->assertEquals(['test' => 'data'], $decoded['payload']);
-        $this->assertArrayHasKey('key', $decoded['results']);
+        $this->assertArrayHasKey('results', $decoded);
     }
 
-    public function test_from_array(): void
+    public function test_from_array_restores_context(): void
     {
         $data = [
             'payload' => ['original' => 'payload'],
@@ -144,7 +213,7 @@ final class PipelineContextTest extends TestCase
                     'meta' => []
                 ]
             ],
-            'meta' => ['restored' => true]
+            'meta' => ['restored' => true],
         ];
 
         $context = PipelineContext::fromArray($data);

@@ -6,7 +6,7 @@ namespace DataProcessingPipeline\Tests\Unit\Pipelines\Results;
 
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use DataProcessingPipeline\Pipelines\Enums\{ConflictPolicy, ResultStatus};
-use PHPUnit\Framework\TestCase;
+use DataProcessingPipeline\Tests\TestCase;
 
 final class GenericPipelineResultTest extends TestCase
 {

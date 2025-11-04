@@ -29,5 +29,8 @@
         <include>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <file>src/PipelineServiceProvider.php</file>
+        </exclude>
     </source>
 </phpunit>

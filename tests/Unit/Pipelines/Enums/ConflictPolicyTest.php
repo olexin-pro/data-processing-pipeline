@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DataProcessingPipeline\Tests\Unit\Pipelines\Enums;
 
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
-use PHPUnit\Framework\TestCase;
+use DataProcessingPipeline\Tests\TestCase;
 
 final class ConflictPolicyTest extends TestCase
 {

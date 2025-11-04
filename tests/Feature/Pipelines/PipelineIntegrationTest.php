@@ -16,6 +16,7 @@ use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\EmailDomainExtractorSte
 use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\EmailFormatterStep;
 use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\EmailValidatorStep;
 use DataProcessingPipeline\Tests\TestCase;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class PipelineIntegrationTest extends TestCase
 {
@@ -34,8 +35,7 @@ final class PipelineIntegrationTest extends TestCase
                 new EmailFormatterStep(),
                 new EmailDomainExtractorStep(),
                 new EmailValidatorStep(),
-            ],
-            conflictResolver: new ConflictResolver()
+            ]
         );
 
         $result = $runner->run($context);
@@ -50,6 +50,9 @@ final class PipelineIntegrationTest extends TestCase
         $this->assertEquals('verified', $emailData['status']);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_context_serialization_roundtrip(): void
     {
         $original = new PipelineContext(['test' => 'data']);
@@ -68,6 +71,9 @@ final class PipelineIntegrationTest extends TestCase
         );
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_overwrite_policy_replaces_previous_data(): void
     {
         $context = new PipelineContext([]);
@@ -93,7 +99,7 @@ final class PipelineIntegrationTest extends TestCase
             }
         };
 
-        $runner = new PipelineRunner([$step1, $step2], new ConflictResolver());
+        $runner = new PipelineRunner([$step1, $step2]);
         $result = $runner->run($context);
 
         $config = $result->getResult('config')->getData();
@@ -102,6 +108,9 @@ final class PipelineIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('enabled', $config);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_priority_affects_merge_result(): void
     {
         $context = new PipelineContext([]);
