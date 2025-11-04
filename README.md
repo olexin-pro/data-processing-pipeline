@@ -4,7 +4,10 @@
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10.0-red)](https://laravel.com)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> ! NOT READY FOR USE
+
+> ⚠️ **Work in progress**  
+> This package is currently under active development and **not recommended for production use**.  
+> APIs and behavior may change without notice.
 
 A robust, strictly-typed, and extensible data processing pipeline system for Laravel applications. Process data through a chain of isolated steps with built-in conflict resolution, priority handling, and optional execution history tracking.
 
