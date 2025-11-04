@@ -3,6 +3,7 @@
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10.0-red)](https://laravel.com)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![codecov](https://codecov.io/github/olexin-pro/data-processing-pipeline/graph/badge.svg?token=V8AZSQJGN7)](https://codecov.io/github/olexin-pro/data-processing-pipeline)
 
 
 > ⚠️ **Work in progress**  
