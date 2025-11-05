@@ -4,12 +4,16 @@ namespace DataProcessingPipeline;
 
 use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineNotifierInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineRunnerInterface;
 use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use DataProcessingPipeline\Pipelines\Resolution\ConflictResolver;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
+use DataProcessingPipeline\Services\Notifiers\NullNotifier;
+use DataProcessingPipeline\Services\PipelineExecutor;
+use DataProcessingPipeline\Services\PipelineWebhookNotifier;
 use Illuminate\Support\ServiceProvider;
 
 class PipelineServiceProvider extends ServiceProvider
@@ -28,6 +32,9 @@ class PipelineServiceProvider extends ServiceProvider
                 recorder: null
             );
         });
+
+        $this->app->singleton(PipelineExecutor::class);
+        $this->app->singleton(PipelineNotifierInterface::class, NullNotifier::class);
 
         // $this->mergeConfigFrom(
         //     __DIR__ . '/../config/pipeline.php',

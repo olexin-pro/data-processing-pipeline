@@ -1,27 +1,28 @@
 # 🧭 Data Processing Pipeline for Laravel
 
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue)](https://php.net)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.2-blue)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10.0-red)](https://laravel.com)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![codecov](https://codecov.io/github/olexin-pro/data-processing-pipeline/graph/badge.svg?token=V8AZSQJGN7)](https://codecov.io/github/olexin-pro/data-processing-pipeline)
 
-
-> ⚠️ **Work in progress**  
-> This package is currently under active development and **not recommended for production use**.  
+> ⚠️ **Work in progress**
+> This package is currently under active development and **not recommended for production use**.
 > APIs and behavior may change without notice.
 
 A robust, strictly-typed, and extensible data processing pipeline system for Laravel applications. Process data through a chain of isolated steps with built-in conflict resolution, priority handling, and optional execution history tracking.
 
 ## ✨ Features
 
-- 🔒 **Strictly Typed** - Full PHP 8.1+ type safety with enums and interfaces
-- 🔄 **Immutable Payload** - Original data never changes during processing
-- 🎯 **Conflict Resolution** - Built-in strategies: MERGE, OVERWRITE, SKIP, CUSTOM
-- 📊 **Priority System** - Control data precedence in merge operations
-- 📝 **Execution History** - Optional database tracking of pipeline runs
-- 🚀 **Queue-Safe** - Fully serializable for Laravel queues
-- 🧩 **Extensible** - Easy to add custom steps and conflict resolvers
-- 🧪 **Well Tested** - Comprehensive test coverage
+* 🔒 **Strictly Typed** - Full PHP 8.1+ type safety with enums and interfaces
+* 🔄 **Immutable Payload** - Original data never changes during processing
+* 🎯 **Conflict Resolution** - Built-in strategies: MERGE, OVERWRITE, SKIP, CUSTOM
+* 📊 **Priority System** - Control data precedence in merge operations
+* 📝 **Execution History** - Optional database tracking of pipeline runs
+* 🚀 **Queue-Safe** - Fully serializable for Laravel queues
+* 🧩 **Extensible** - Easy to add custom steps and conflict resolvers
+* 🧪 **Well Tested** - Comprehensive test coverage
+
+---
 
 ## 📦 Installation
 
@@ -29,37 +30,37 @@ A robust, strictly-typed, and extensible data processing pipeline system for Lar
 composer require olexin-pro/data-processing-pipeline
 ```
 
-### Publish Configuration
+### Publish Migrations
 
 ```bash
-php artisan vendor:publish --provider="DataProcessingPipeline\Pipeline\PipelineServiceProvider"
-```
-
-### Run Migrations
-
-```bash
+php artisan vendor:publish --provider="DataProcessingPipeline\PipelineServiceProvider" --tag=pipeline-migrations
 php artisan migrate
 ```
 
 This creates two tables:
-- `pipeline_runs` - Stores pipeline execution records
-- `pipeline_steps` - Stores individual step execution details
+
+* `pipeline_runs` - Stores pipeline execution records
+* `pipeline_steps` - Stores individual step execution details
+
+---
 
 ## 🚀 Quick Start
 
 ### 1. Create a Pipeline Step
 
 ```php
-use App\Pipelines\Context\PipelineContext;
-use App\Pipelines\Contracts\PipelineStepInterface;
-use App\Pipelines\Results\GenericPipelineResult;
-use App\Pipelines\Enums\ConflictPolicy;
+namespace App\Pipelines\Steps;
+
+use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
+use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
+use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
 
 class EmailFormatterStep implements PipelineStepInterface
 {
-    public function handle(PipelineContext $context): PipelineResultInterface
+    public function handle(PipelineContextInterface $context): GenericPipelineResult
     {
-        $email = $context->payload['user']['email'] ?? '';
+        $email = $context->getContent('user.email', '');
         
         return new GenericPipelineResult(
             key: 'email',
@@ -75,31 +76,40 @@ class EmailFormatterStep implements PipelineStepInterface
 ### 2. Run the Pipeline
 
 ```php
-use App\Pipelines\Context\PipelineContext;use App\Pipelines\Resolution\ConflictResolver;use App\Pipelines\Runner\PipelineRunner;use Steps\EmailFormatterStep;use Steps\EmailValidatorStep;
+use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineRunnerInterface;
+use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
+use App\Pipelines\Steps\EmailFormatterStep;
+use App\Pipelines\Steps\EmailValidatorStep;
 
-$context = new PipelineContext([
-    'user' => ['email' => 'John@Example.COM']
-]);
+$context = new PipelineContext(['user' => ['email' => 'John@Example.COM']]);
+$recorder = new PipelineHistoryRecorder('user-processing');
 
-$runner = new PipelineRunner(
-    steps: [
-        new EmailFormatterStep(),
-        new EmailValidatorStep(),
-    ],
-    conflictResolver: new ConflictResolver()
-);
+$runner = app(PipelineRunnerInterface::class);
+$runner->setRecorder($recorder)
+    ->addStep(new EmailFormatterStep())
+    ->addStep(new EmailValidatorStep());
 
 $result = $runner->run($context);
 
 // Access results
 $emailData = $result->getResult('email')->getData();
 // ['value' => 'john@example.com', 'status' => 'verified']
+
+// Build data
+$built = $result->build();
+// ['email' => ['value' => 'john@example.com', 'status' => 'verified']]
 ```
 
 ### 3. Queue Execution
 
 ```php
-use App\Jobs\ProcessPipelineJob;use Steps\EmailFormatterStep;use Steps\EmailValidatorStep;
+use App\Jobs\ProcessPipelineJob;
+use App\Pipelines\Steps\EmailFormatterStep;
+use App\Pipelines\Steps\EmailValidatorStep;
+use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+
+$context = PipelineContext::make(['user' => ['email' => 'john@example.com']]);
 
 ProcessPipelineJob::dispatch(
     contextData: $context->toArray(),
@@ -116,9 +126,10 @@ ProcessPipelineJob::dispatch(
 ### Pipeline Context
 
 The context is an immutable container that holds:
-- **Payload** (readonly) - Original input data
-- **Results** - Accumulated step outputs
-- **Meta** - Arbitrary metadata (errors, timestamps, etc.)
+
+* **Payload** (readonly) - Original input data
+* **Results** - Accumulated step outputs
+* **Meta** - Arbitrary metadata (errors, timestamps, etc.)
 
 ```php
 $context = new PipelineContext(
@@ -129,27 +140,30 @@ $context = new PipelineContext(
 
 ### Pipeline Results
 
-Every step returns a `PipelineResultInterface` with:
+Every step returns a `PipelineResultInterface`:
 
 ```php
 interface PipelineResultInterface
 {
-    public function getKey(): string;           // Where to store the data
-    public function getData(): array;           // The actual data
-    public function getPolicy(): ConflictPolicy; // How to handle conflicts
-    public function getPriority(): int;         // Precedence in merges
-    public function getProvenance(): string;    // Source identifier
-    public function getStatus(): ResultStatus;  // ok, skipped, failed
-    public function getMeta(): array;           // Additional metadata
+    public function getKey(): string;
+    public function getData(): int|float|array|bool|string|null;
+    public function getPolicy(): ConflictPolicy;
+    public function getPriority(): int;
+    public function getProvenance(): string;
+    public function getStatus(): ResultStatus;
+    public function getMeta(): array;
 }
 ```
+
+---
 
 ### Conflict Policies
 
 When multiple steps write to the same key:
 
 #### MERGE (default)
-Recursively merges arrays, with later values overwriting earlier ones:
+
+Recursively merges arrays, respecting priorities:
 
 ```php
 // Step 1
@@ -163,7 +177,8 @@ Recursively merges arrays, with later values overwriting earlier ones:
 ```
 
 #### OVERWRITE
-Completely replaces previous data:
+
+Replaces previous value completely:
 
 ```php
 return new GenericPipelineResult(
@@ -174,7 +189,8 @@ return new GenericPipelineResult(
 ```
 
 #### SKIP
-Keeps the first value, ignores subsequent writes:
+
+Keeps the first result, ignores the rest:
 
 ```php
 return new GenericPipelineResult(
@@ -185,17 +201,20 @@ return new GenericPipelineResult(
 ```
 
 #### CUSTOM
-Use a custom resolver:
+Define a custom resolver:
 
 ```php
+use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
+
 class PriorityConflictResolver implements ConflictResolverInterface
 {
     public function resolve(
         PipelineResultInterface $existing,
         PipelineResultInterface $incoming,
-        PipelineContext $context
+        PipelineContextInterface $context
     ): PipelineResultInterface {
-        // Higher priority wins
         return $incoming->getPriority() > $existing->getPriority()
             ? $incoming
             : $existing;
@@ -214,61 +233,58 @@ return new GenericPipelineResult(
 
 ### Priority System
 
-Higher priority values take precedence in MERGE operations:
+Higher priority overrides lower ones in merges:
 
 ```php
-// Low priority step
+// Low priority
 new GenericPipelineResult(
     key: 'settings',
     data: ['theme' => 'light'],
     priority: 5
 );
 
-// High priority step
+// High priority
 new GenericPipelineResult(
     key: 'settings',
     data: ['theme' => 'dark'],
     priority: 20
 );
 
-// Result will have priority: 20 and theme: 'dark'
+// Result: theme = 'dark'
 ```
+
+---
 
 ### Execution History
 
-Track pipeline execution in the database:
+Enable automatic logging:
 
 ```php
-use App\Pipelines\History\PipelineHistoryRecorder;
+use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 
 $recorder = new PipelineHistoryRecorder('user-processing');
 
 $runner = new PipelineRunner(
-    steps: $steps,
-    conflictResolver: new ConflictResolver(),
+    steps: [
+        new EmailFormatterStep(),
+        new EmailValidatorStep(),
+    ],
     recorder: $recorder
 );
+// or
+$runner = app(PipelineRunnerInterface::class)
+    ->setRecorder($recorder)
+    ->addStep(new EmailFormatterStep())
+    ->addStep(new EmailValidatorStep());
 
 $runner->run($context);
 ```
 
-Query the history:
-
-```php
-$runs = DB::table('pipeline_runs')
-    ->where('pipeline_name', 'user-processing')
-    ->where('status', 'completed')
-    ->get();
-
-$steps = DB::table('pipeline_steps')
-    ->where('run_id', $runId)
-    ->orderBy('created_at')
-    ->get();
-```
+---
 
 ### Error Handling
 
-Pipeline continues on step failures and records errors:
+Pipeline continues on failure:
 
 ```php
 class RiskyStep implements PipelineStepInterface
@@ -303,33 +319,43 @@ if (!empty($result->meta['errors'])) {
 Add steps at runtime:
 
 ```php
-use Steps\EmailFormatterStep;use Steps\EmailValidatorStep;$runner = new PipelineRunner([], new ConflictResolver());
+$runner = new PipelineRunner(
+    steps: [
+        new EmailFormatterStep(),
+        new EmailValidatorStep(),
+        new EmailDomainCheckerStep()
+    ],
+    recorder: $recorder
+);
 
+//or 
+$runner = app(PipelineRunnerInterface::class);
 $runner->addStep(new EmailFormatterStep())
        ->addStep(new EmailValidatorStep())
        ->addStep(new EmailDomainCheckerStep());
 
-$result = $runner->run($context);
+
+$runner->run($context);
 ```
 
-### Conditional Processing
+### Conditional Steps
 
-Skip steps based on context:
+Steps can self-skip:
 
 ```php
 class ConditionalStep implements PipelineStepInterface
 {
-    public function handle(PipelineContext $context): PipelineResultInterface
+    public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
-        if (!$context->payload['process_email']) {
+        if (!$context->getContent('process_email')) {
             return new GenericPipelineResult(
                 key: 'email',
                 data: [],
                 status: ResultStatus::SKIPPED
             );
         }
-        
-        // Normal processing...
+
+        // normal logic...
     }
 }
 ```
@@ -341,15 +367,15 @@ class ConditionalStep implements PipelineStepInterface
 
 class ValidateOrderStep implements PipelineStepInterface
 {
-    public function handle(PipelineContext $context): PipelineResultInterface
+    public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
-        $order = $context->payload['order'];
-        
+        $order = $context->getContent('order', []);
         $errors = [];
+
         if (empty($order['items'])) {
             $errors[] = 'Order must contain items';
         }
-        
+
         return new GenericPipelineResult(
             key: 'validation',
             data: [
@@ -363,46 +389,39 @@ class ValidateOrderStep implements PipelineStepInterface
 
 class CalculateTotalsStep implements PipelineStepInterface
 {
-    public function handle(PipelineContext $context): PipelineResultInterface
+    public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
-        $items = $context->payload['order']['items'];
-        
+        $items = $context->getContent('order.items', []);
         $subtotal = array_sum(array_column($items, 'price'));
         $tax = $subtotal * 0.1;
         $total = $subtotal + $tax;
-        
+
         return new GenericPipelineResult(
             key: 'totals',
-            data: [
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'total' => $total
-            ]
+            data: compact('subtotal', 'tax', 'total')
         );
     }
 }
 
 class ApplyDiscountStep implements PipelineStepInterface
 {
-    public function handle(PipelineContext $context): PipelineResultInterface
+    public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
-        $totals = $context->getResult('totals')?->getData();
-        $couponCode = $context->payload['coupon_code'] ?? null;
-        
-        $discount = $this->calculateDiscount($couponCode, $totals['total']);
-        
+        $totals = $context->getResult('totals')?->getData() ?? [];
+        $coupon = $context->getContent('coupon_code');
+        $discount = $coupon ? 0.1 * ($totals['total'] ?? 0) : 0;
+
         return new GenericPipelineResult(
             key: 'totals',
             data: [
                 'discount' => $discount,
-                'total' => $totals['total'] - $discount
+                'total' => ($totals['total'] ?? 0) - $discount,
             ],
             policy: ConflictPolicy::MERGE
         );
     }
 }
 
-// Usage
 $context = new PipelineContext([
     'order' => [
         'id' => 123,
@@ -414,112 +433,73 @@ $context = new PipelineContext([
     'coupon_code' => 'SAVE10'
 ]);
 
-$runner = new PipelineRunner([
-    new ValidateOrderStep(),
-    new CalculateTotalsStep(),
-    new ApplyDiscountStep(),
-], new ConflictResolver());
+$runner = app(PipelineRunnerInterface::class)
+    ->addStep(new ValidateOrderStep())
+    ->addStep(new CalculateTotalsStep())
+    ->addStep(new ApplyDiscountStep());
 
 $result = $runner->run($context);
 
-// Access final totals
 $totals = $result->getResult('totals')->getData();
-// [
-//     'subtotal' => 150,
-//     'tax' => 15,
-//     'discount' => 16.5,
-//     'total' => 148.5
-// ]
+/*
+[
+    'subtotal' => 150,
+    'tax' => 15,
+    'discount' => 16.5,
+    'total' => 148.5
+]
+*/
 ```
+
+---
 
 ## 🧪 Testing
 
-Run the test suite:
-
 ```bash
-composer test
+composer run test
 ```
 
-Run with coverage:
-
-```bash
-composer test:coverage
-```
-
-### Testing Your Steps
-
-```php
-use App\Pipelines\Context\PipelineContext;use Steps\EmailFormatterStep;use Tests\TestCase;
-
-class EmailFormatterStepTest extends TestCase
-{
-    public function test_formats_email_to_lowercase(): void
-    {
-        $context = new PipelineContext([
-            'user' => ['email' => 'JOHN@EXAMPLE.COM']
-        ]);
-        
-        $step = new EmailFormatterStep();
-        $result = $step->handle($context);
-        
-        $this->assertEquals('john@example.com', $result->getData()['value']);
-    }
-}
-```
+---
 
 ## 📖 API Reference
 
 ### PipelineContext
 
 ```php
-// Constructor
 new PipelineContext(
     array $payload,
     array $results = [],
     array $meta = []
-)
+);
 
-// Methods
 $context->addResult(PipelineResultInterface $result): void
 $context->getResult(string $key): ?PipelineResultInterface
+$context->getContent(string $key, mixed $default = null): mixed
 $context->hasResult(string $key): bool
 $context->toArray(): array
-$context->jsonSerialize(): array
+$context->build(): array
 PipelineContext::fromArray(array $data): self
 ```
 
-### PipelineRunner
-
-```php
-// Constructor
-new PipelineRunner(
-    array $steps,
-    ConflictResolver $conflictResolver,
-    ?PipelineHistoryRecorder $recorder = null
-)
-
-// Methods
-$runner->run(PipelineContext $context): PipelineContext
-$runner->addStep(PipelineStepInterface $step): self
-```
+---
 
 ### GenericPipelineResult
 
 ```php
-// Constructor
 new GenericPipelineResult(
     string $key,
-    array $data,
+    int|float|array|bool|string|null $data,
     ConflictPolicy $policy = ConflictPolicy::MERGE,
     int $priority = 10,
     string $provenance = '',
     ResultStatus $status = ResultStatus::OK,
     array $meta = []
-)
+);
 
-// Static Factory
 GenericPipelineResult::fromArray(array $data): self
 ```
+
+---
 
 ## 🤝 Contributing
 
