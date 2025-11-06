@@ -20,5 +20,10 @@ interface PipelineContextInterface extends \JsonSerializable
     public function getMeta(): array;
     public function setMeta(array $metadata): void;
 
-    public static function fromArray(array $data): PipelineContextInterface;
+    public static function make(
+        array $payload,
+        array $results = [],
+        array $meta = [],
+        ?ConflictResolverInterface $conflictResolver = null
+    ): PipelineContextInterface;
 }

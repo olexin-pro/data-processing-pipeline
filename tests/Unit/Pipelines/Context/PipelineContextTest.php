@@ -200,6 +200,9 @@ final class PipelineContextTest extends TestCase
         $this->assertArrayHasKey('results', $decoded);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_from_array_restores_context(): void
     {
         $data = [
@@ -218,7 +221,7 @@ final class PipelineContextTest extends TestCase
             'meta' => ['restored' => true],
         ];
 
-        $context = PipelineContext::fromArray($data);
+        $context = PipelineContext::make($data);
 
         $this->assertEquals(['original' => 'payload'], $context->getPayload());
         $this->assertTrue($context->hasResult('key1'));

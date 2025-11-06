@@ -79,14 +79,14 @@ final class PipelineContext implements PipelineContextInterface
     {
         return [
             'payload' => $this->payload,
-            'results' => array_map(fn ($r) => $r->jsonSerialize(), $this->results),
+            'results' => array_map(fn($r) => $r->jsonSerialize(), $this->results),
             'meta' => $this->meta,
         ];
     }
 
     public function build(): array
     {
-        return array_map(fn (PipelineResultInterface $r) => $r->getData(), $this->results);
+        return array_map(fn(PipelineResultInterface $r) => $r->getData(), $this->results);
     }
 
     public function jsonSerialize(): array
@@ -97,30 +97,12 @@ final class PipelineContext implements PipelineContextInterface
     /**
      * @throws BindingResolutionException
      */
-    public static function fromArray(array $data): PipelineContextInterface
-    {
-        $context = new self(
-            payload: $data['payload'] ?? [],
-            results: [],
-            meta: $data['meta'] ?? []
-        );
-
-        foreach ($data['results'] ?? [] as $key => $resultData) {
-            $context->results[$key] = GenericPipelineResult::fromArray($resultData);
-        }
-
-        return $context;
-    }
-
-    /**
-     * @throws BindingResolutionException
-     */
     public static function make(
         array $payload,
         array $results = [],
         array $meta = [],
         ?ConflictResolverInterface $conflictResolver = null
-    ): self {
+    ): PipelineContextInterface {
         return new self(
             payload: $payload,
             results: $results,

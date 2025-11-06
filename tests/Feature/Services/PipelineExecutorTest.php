@@ -28,8 +28,8 @@ final class PipelineExecutorTest extends TestCase
         app()->bind(FailingStep::class, fn() => new TestStep('result2', ['baz' => 123])); // заменяем на успешный
 
         $executor = new PipelineExecutor();
-        $context = $executor->executeFromArray(
-            contextData: ['payload' => ['data' => true]],
+        $context = $executor->run(
+            contextData: ['data' => true],
             stepClasses: [TestStep::class, FailingStep::class],
             pipelineName: 'executor-test'
         );
@@ -46,7 +46,7 @@ final class PipelineExecutorTest extends TestCase
     {
         $executor = new PipelineExecutor();
 
-        $result = $executor->executeFromArray(
+        $result = $executor->run(
             contextData: [],
             stepClasses: [FailingStep::class],
             pipelineName: 'broken-pipeline'
@@ -75,8 +75,8 @@ final class PipelineExecutorTest extends TestCase
 
         app()->bind(TestStep::class, fn() => new TestStep('r', ['ok' => true]));
 
-        $result = $executor->executeFromArray(
-            contextData: ['payload' => []],
+        $result = $executor->run(
+            contextData: [],
             stepClasses: [TestStep::class],
             pipelineName: 'pipeline-with-history',
             recordHistory: true

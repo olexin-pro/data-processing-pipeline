@@ -64,7 +64,7 @@ final class PipelineIntegrationTest extends TestCase
         $original->setMeta($meta);
 
         $json = json_encode($original);
-        $restored = PipelineContext::fromArray(json_decode($json, true));
+        $restored = PipelineContext::make(json_decode($json, true));
 
         $this->assertEquals($original->getPayload(), $restored->getPayload());
         $this->assertEquals($original->getMeta(), $restored->getMeta());

@@ -10,6 +10,7 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
 use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Traits\Macroable;
 
 final class PipelineExecutor
@@ -49,14 +50,15 @@ final class PipelineExecutor
      * @param string|null $pipelineName
      * @param bool $recordHistory
      * @return PipelineContextInterface
+     * @throws BindingResolutionException
      */
-    public function executeFromArray(
+    public function run(
         array $contextData,
         array $stepClasses,
         ?string $pipelineName = null,
         bool $recordHistory = true
     ): PipelineContextInterface {
-        $context = PipelineContext::fromArray($contextData);
+        $context = PipelineContext::make($contextData);
         $steps = $this->resolveSteps($stepClasses);
 
         return $this->execute($context, $steps, $pipelineName, $recordHistory);
