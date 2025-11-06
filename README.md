@@ -82,7 +82,7 @@ use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use App\Pipelines\Steps\EmailFormatterStep;
 use App\Pipelines\Steps\EmailValidatorStep;
 
-$context = new PipelineContext(['user' => ['email' => 'John@Example.COM']]);
+$context = PipelineContext::make(['user' => ['email' => 'John@Example.COM']]);
 $recorder = new PipelineHistoryRecorder('user-processing');
 
 $runner = app(PipelineRunnerInterface::class);
@@ -271,7 +271,9 @@ $runner = new PipelineRunner(
     ],
     recorder: $recorder
 );
+
 // or
+
 $runner = app(PipelineRunnerInterface::class)
     ->setRecorder($recorder)
     ->addStep(new EmailFormatterStep())
@@ -319,18 +321,11 @@ if (!empty($result->meta['errors'])) {
 Add steps at runtime:
 
 ```php
-$runner = new PipelineRunner(
-    steps: [
-        new EmailFormatterStep(),
-        new EmailValidatorStep(),
-        new EmailDomainCheckerStep()
-    ],
-    recorder: $recorder
-);
-
-//or 
+$recorder = new PipelineHistoryRecorder('user-processing');
 $runner = app(PipelineRunnerInterface::class);
-$runner->addStep(new EmailFormatterStep())
+
+$runner->setRecorder($recorder)
+       ->addStep(new EmailFormatterStep())
        ->addStep(new EmailValidatorStep())
        ->addStep(new EmailDomainCheckerStep());
 
@@ -364,8 +359,22 @@ class ConditionalStep implements PipelineStepInterface
 
 ```php
 // Domain: E-commerce Order Processing
+<?php
 
-class ValidateOrderStep implements PipelineStepInterface
+use DataProcessingPipeline\Pipelines\Contracts\{
+    PipelineContextInterface,
+    PipelineResultInterface,
+    PipelineStepInterface
+};
+use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
+use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
+use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
+
+/**
+ * Validate order
+ */
+final class ValidateOrderStep implements PipelineStepInterface
 {
     public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
@@ -373,27 +382,59 @@ class ValidateOrderStep implements PipelineStepInterface
         $errors = [];
 
         if (empty($order['items'])) {
-            $errors[] = 'Order must contain items';
+            $errors[] = 'Order must contain at least one item.';
+        }
+
+        if (!isset($order['id'])) {
+            $errors[] = 'Order ID is missing.';
         }
 
         return new GenericPipelineResult(
             key: 'validation',
             data: [
-                'valid' => empty($errors),
-                'errors' => $errors
+                'valid'  => empty($errors),
+                'errors' => $errors,
             ],
-            priority: 100 // High priority
+            priority: 100
         );
     }
 }
 
-class CalculateTotalsStep implements PipelineStepInterface
+/**
+ * Calculate per-product totals
+ */
+final class CalculateProductsStep implements PipelineStepInterface
 {
     public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
         $items = $context->getContent('order.items', []);
-        $subtotal = array_sum(array_column($items, 'price'));
-        $tax = $subtotal * 0.1;
+
+        $products = collect($items)->map(fn ($p) => [
+            'name'  => $p['name'],
+            'price' => (float) $p['price'],
+            'qty'   => (int) $p['qty'],
+            'total' => (float) $p['price'] * (int) $p['qty'],
+        ])->toArray();
+
+        return new GenericPipelineResult(
+            key: 'products',
+            data: ['items' => $products],
+            policy: ConflictPolicy::MERGE
+        );
+    }
+}
+
+/**
+ * Calculate totals (subtotal, tax, total)
+ */
+final class CalculateTotalsStep implements PipelineStepInterface
+{
+    public function handle(PipelineContextInterface $context): PipelineResultInterface
+    {
+        $products = $context->getResult('products')?->getData()['items'] ?? [];
+
+        $subtotal = array_sum(array_column($products, 'total'));
+        $tax = round($subtotal * 0.1, 2);
         $total = $subtotal + $tax;
 
         return new GenericPipelineResult(
@@ -403,52 +444,95 @@ class CalculateTotalsStep implements PipelineStepInterface
     }
 }
 
-class ApplyDiscountStep implements PipelineStepInterface
+/**
+ * Apply coupon discounts
+ */
+final class ApplyDiscountStep implements PipelineStepInterface
 {
     public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
         $totals = $context->getResult('totals')?->getData() ?? [];
         $coupon = $context->getContent('coupon_code');
-        $discount = $coupon ? 0.1 * ($totals['total'] ?? 0) : 0;
+
+        $discountRate = match ($coupon) {
+            'SAVE10' => 0.10,
+            'SAVE20' => 0.20,
+            default  => 0.0,
+        };
+
+        $discount = round(($totals['total'] ?? 0) * $discountRate, 2);
 
         return new GenericPipelineResult(
             key: 'totals',
             data: [
                 'discount' => $discount,
-                'total' => ($totals['total'] ?? 0) - $discount,
+                'total'    => ($totals['total'] ?? 0) - $discount,
             ],
             policy: ConflictPolicy::MERGE
         );
     }
 }
 
+// ----------------------------------------------------
+// ▶ Example usage
+// ----------------------------------------------------
+
 $context = new PipelineContext([
     'order' => [
         'id' => 123,
         'items' => [
-            ['name' => 'Product A', 'price' => 100],
-            ['name' => 'Product B', 'price' => 50],
-        ]
+            ['name' => 'Product A', 'price' => 100, 'qty' => 1],
+            ['name' => 'Product B', 'price' => 50,  'qty' => 8],
+        ],
     ],
-    'coupon_code' => 'SAVE10'
+    'coupon_code' => 'SAVE10',
 ]);
 
-$runner = app(PipelineRunnerInterface::class)
-    ->addStep(new ValidateOrderStep())
-    ->addStep(new CalculateTotalsStep())
-    ->addStep(new ApplyDiscountStep());
+$runner = new PipelineRunner([
+    new CalculateProductsStep(),
+    new CalculateTotalsStep(),
+    new ValidateOrderStep(),
+    new ApplyDiscountStep(),
+]);
 
 $result = $runner->run($context);
+
+// ----------------------------------------------------
+// ▶ Results
+// ----------------------------------------------------
 
 $totals = $result->getResult('totals')->getData();
 /*
 [
-    'subtotal' => 150,
-    'tax' => 15,
-    'discount' => 16.5,
-    'total' => 148.5
+    'subtotal' => 500,        // 100*1 + 50*8
+    'tax' => 50,
+    'discount' => 55,
+    'total' => 495
 ]
 */
+
+$payload = $result->build();
+/*
+[
+    'products' => [
+        'items' => [
+            ['name' => 'Product A', 'price' => 100.0, 'qty' => 1, 'total' => 100.0],
+            ['name' => 'Product B', 'price' => 50.0,  'qty' => 8, 'total' => 400.0],
+        ],
+    ],
+    'totals' => [
+        'subtotal' => 500,
+        'tax' => 50,
+        'discount' => 55,
+        'total' => 495,
+    ],
+    'validation' => [
+        'valid' => true,
+        'errors' => [],
+    ],
+]
+*/
+
 ```
 
 ---
@@ -466,10 +550,21 @@ composer run test
 ### PipelineContext
 
 ```php
+use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
+
 new PipelineContext(
     array $payload,
     array $results = [],
-    array $meta = []
+    array $meta = [],
+    ?ConflictResolverInterface $conflictResolver = null
+);
+// or
+PipelineContext::make(
+    array $payload,
+    array $results = [],
+    array $meta = [],
+    ?ConflictResolverInterface $conflictResolver = null
 );
 
 $context->addResult(PipelineResultInterface $result): void

@@ -7,9 +7,12 @@ namespace DataProcessingPipeline\Pipelines\Results;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
+use Illuminate\Support\Traits\Macroable;
 
 abstract class AbstractPipelineResult implements PipelineResultInterface
 {
+    use Macroable;
+
     public function __construct(
         protected string $key,
         protected int|float|array|bool|string|null $data,

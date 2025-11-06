@@ -94,6 +94,9 @@ final class PipelineContext implements PipelineContextInterface
         return $this->toArray();
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public static function fromArray(array $data): PipelineContextInterface
     {
         $context = new self(
@@ -114,12 +117,13 @@ final class PipelineContext implements PipelineContextInterface
      */
     public static function make(
         array $payload,
+        array $results = [],
         array $meta = [],
         ?ConflictResolverInterface $conflictResolver = null
     ): self {
         return new self(
             payload: $payload,
-            results: [],
+            results: $results,
             meta: $meta,
             conflictResolver: $conflictResolver ?? app()->make(ConflictResolverInterface::class)
         );
