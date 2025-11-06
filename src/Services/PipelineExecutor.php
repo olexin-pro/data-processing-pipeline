@@ -10,9 +10,12 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
 use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
+use Illuminate\Support\Traits\Macroable;
 
 final class PipelineExecutor
 {
+    use Macroable;
+
     /**
      * Execute pipeline with given context and steps.
      *

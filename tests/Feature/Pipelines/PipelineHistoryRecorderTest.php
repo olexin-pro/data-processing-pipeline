@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace DataProcessingPipeline\Tests\Feature\Pipelines;
 
 use DataProcessingPipeline\Models\PipelineRun;
-use DataProcessingPipeline\Models\PipelineStep;
 use DataProcessingPipeline\Pipelines\Context\PipelineContext;
 use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\SimpleStep;
 use DataProcessingPipeline\Tests\TestCase;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 final class PipelineHistoryRecorderTest extends TestCase
 {
