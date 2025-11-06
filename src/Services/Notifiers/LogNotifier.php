@@ -21,9 +21,9 @@ final class LogNotifier
     ): void {
         Log::channel($this->channel)->info('Pipeline completed successfully', [
             'pipeline_name' => $pipelineName,
-            'run_id' => $context->meta['run_id'] ?? null,
-            'has_errors' => !empty($context->meta['errors']),
-            'results_count' => count($context->results),
+            'run_id' => $context->getMeta['run_id'] ?? null,
+            'has_errors' => !empty($context->getMeta()['errors']),
+            'results_count' => count($context->getResults()),
             'meta' => $meta,
         ]);
     }

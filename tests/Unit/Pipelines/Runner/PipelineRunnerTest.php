@@ -57,10 +57,10 @@ final class PipelineRunnerTest extends TestCase
 
         $this->assertTrue($result->hasResult('key1'));
         $this->assertTrue($result->hasResult('key2'));
-        $this->assertArrayHasKey('errors', $result->meta);
-        $this->assertCount(1, $result->meta['errors']);
-        $this->assertStringContainsString('FailingStep', $result->meta['errors'][0]['step']);
-        $this->assertStringContainsString('failed intentionally', $result->meta['errors'][0]['message']);
+        $this->assertArrayHasKey('errors', $result->getMeta());
+        $this->assertCount(1, $result->getMeta()['errors']);
+        $this->assertStringContainsString('FailingStep', $result->getMeta()['errors'][0]['step']);
+        $this->assertStringContainsString('failed intentionally', $result->getMeta()['errors'][0]['message']);
     }
 
     /**

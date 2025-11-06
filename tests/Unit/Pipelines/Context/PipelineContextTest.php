@@ -25,9 +25,9 @@ final class PipelineContextTest extends TestCase
         $payload = ['user' => ['id' => 1]];
         $context = new PipelineContext($payload);
 
-        $this->assertEquals($payload, $context->payload);
-        $this->assertEmpty($context->results);
-        $this->assertEmpty($context->meta);
+        $this->assertEquals($payload, $context->getPayload());
+        $this->assertEmpty($context->getResults());
+        $this->assertEmpty($context->getMeta());
     }
 
     public function test_make_creates_instance_with_meta_and_custom_resolver(): void
@@ -50,8 +50,8 @@ final class PipelineContextTest extends TestCase
         $result = new GenericPipelineResult('r', ['ok' => true]);
         $context->setResult($result);
 
-        $this->assertEquals(['foo' => 'bar'], $context->payload);
-        $this->assertEquals(['env' => 'test'], $context->meta);
+        $this->assertEquals(['foo' => 'bar'], $context->getPayload());
+        $this->assertEquals(['env' => 'test'], $context->getMeta());
         $this->assertTrue($context->hasResult('r'));
         $this->assertSame($result, $context->getResult('r'));
         $this->assertFalse($fakeResolver->called, 'Resolver should not be called for new keys');
@@ -183,7 +183,9 @@ final class PipelineContextTest extends TestCase
     public function test_to_array_and_json_serialization(): void
     {
         $context = new PipelineContext(['user' => 'john']);
-        $context->meta['pipeline_id'] = 'test-123';
+        $meta = $context->getMeta();
+        $meta['pipeline_id'] = 'test-123';
+        $context->setMeta($meta);
         $context->setResult(new GenericPipelineResult('key1', ['val' => 1]));
 
         $array = $context->toArray();
@@ -218,9 +220,9 @@ final class PipelineContextTest extends TestCase
 
         $context = PipelineContext::fromArray($data);
 
-        $this->assertEquals(['original' => 'payload'], $context->payload);
+        $this->assertEquals(['original' => 'payload'], $context->getPayload());
         $this->assertTrue($context->hasResult('key1'));
         $this->assertEquals(['restored' => true], $context->getResult('key1')->getData());
-        $this->assertEquals(['restored' => true], $context->meta);
+        $this->assertEquals(['restored' => true], $context->getMeta());
     }
 }

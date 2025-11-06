@@ -34,12 +34,14 @@ final class PipelineRunner implements PipelineRunnerInterface
                 $status = $result->getStatus();
             } catch (\Throwable $e) {
                 $status = ResultStatus::FAILED;
-                $context->meta['errors'] = $context->meta['errors'] ?? [];
-                $context->meta['errors'][] = [
+                $meta = $context->getMeta();
+                $meta['errors'] = $meta['errors'] ?? [];
+                $meta['errors'][] = [
                     'step' => get_class($step),
                     'message' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                 ];
+                $context->setMeta($meta);
             }
 
             $duration = microtime(true) - $start;

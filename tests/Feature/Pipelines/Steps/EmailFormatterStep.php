@@ -14,7 +14,7 @@ final class EmailFormatterStep implements PipelineStepInterface
 {
     public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
-        $email = $context->payload['user']['email'] ?? '';
+        $email = $context->getPayload()['user']['email'] ?? '';
 
         return new GenericPipelineResult(
             key: 'email',

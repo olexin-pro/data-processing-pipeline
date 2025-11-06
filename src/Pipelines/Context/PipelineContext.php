@@ -19,9 +19,9 @@ final class PipelineContext implements PipelineContextInterface
      * @throws BindingResolutionException
      */
     public function __construct(
-        public readonly array $payload,
-        public array $results = [],
-        public array $meta = [],
+        private readonly array $payload,
+        private array $results = [],
+        private array $meta = [],
         private ?ConflictResolverInterface $conflictResolver = null
     ) {
         $this->conflictResolver = $conflictResolver ?? app()->make(ConflictResolverInterface::class);
@@ -40,14 +40,34 @@ final class PipelineContext implements PipelineContextInterface
         }
     }
 
-    public function getResult(string $key): ?PipelineResultInterface
+    public function getResult(string $key, mixed $default = null): ?PipelineResultInterface
     {
-        return $this->results[$key] ?? null;
+        return data_get($this->results, $key, $default);
+    }
+
+    public function getResults(): array
+    {
+        return $this->results;
     }
 
     public function getContent(string $key, mixed $default = null): mixed
     {
         return data_get($this->payload, $key, $default);
+    }
+
+    public function getPayload(): array
+    {
+        return $this->payload;
+    }
+
+    public function getMeta(): array
+    {
+        return $this->meta;
+    }
+
+    public function setMeta(array $metadata): void
+    {
+        $this->meta = $metadata;
     }
 
     public function hasResult(string $key): bool

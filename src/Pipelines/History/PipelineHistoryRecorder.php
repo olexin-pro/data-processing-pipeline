@@ -58,9 +58,9 @@ final class PipelineHistoryRecorder implements PipelineHistoryRecorderInterface
         PipelineRun::query()
             ->where('id', $this->runId)
             ->update([
-                'status' => empty($context->meta['errors']) ? 'completed' : 'failed',
+                'status' => empty($context->getMeta()['errors']) ? 'completed' : 'failed',
                 'final' => json_encode($context->toArray()),
-                'meta' => json_encode($context->meta),
+                'meta' => json_encode($context->getMeta()),
                 'finished_at' => now(),
             ]);
     }
@@ -70,9 +70,9 @@ final class PipelineHistoryRecorder implements PipelineHistoryRecorderInterface
         return PipelineRun::query()->insertGetId([
             'pipeline_name' => $this->pipelineName,
             'status' => 'running',
-            'payload' => json_encode($context->payload),
+            'payload' => json_encode($context->getPayload()),
             'final' => null,
-            'meta' => json_encode($context->meta),
+            'meta' => json_encode($context->getMeta()),
             'created_at' => now(),
             'finished_at' => null,
         ]);

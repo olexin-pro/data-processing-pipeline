@@ -19,6 +19,9 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class PipelineIntegrationTest extends TestCase
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function test_email_processing_pipeline(): void
     {
         $payload = [
@@ -56,13 +59,15 @@ final class PipelineIntegrationTest extends TestCase
     {
         $original = new PipelineContext(['test' => 'data']);
         $original->setResult(new GenericPipelineResult('key1', ['val' => 123]));
-        $original->meta['custom'] = 'metadata';
+        $meta = $original->getMeta();
+        $meta['custom'] = 'metadata';
+        $original->setMeta($meta);
 
         $json = json_encode($original);
         $restored = PipelineContext::fromArray(json_decode($json, true));
 
-        $this->assertEquals($original->payload, $restored->payload);
-        $this->assertEquals($original->meta, $restored->meta);
+        $this->assertEquals($original->getPayload(), $restored->getPayload());
+        $this->assertEquals($original->getMeta(), $restored->getMeta());
         $this->assertTrue($restored->hasResult('key1'));
         $this->assertEquals(
             $original->getResult('key1')->getData(),
