@@ -3,6 +3,7 @@
 namespace DataProcessingPipeline\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PipelineRun extends Model
 {
@@ -25,5 +26,10 @@ class PipelineRun extends Model
             'created_at' => 'datetime',
             'finished_at' => 'datetime',
         ];
+    }
+
+    public function steps(): HasMany
+    {
+        return $this->hasMany(PipelineStep::class, 'run_id', 'id');
     }
 }

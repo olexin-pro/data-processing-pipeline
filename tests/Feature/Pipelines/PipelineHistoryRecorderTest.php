@@ -58,12 +58,11 @@ final class PipelineHistoryRecorderTest extends TestCase
             ->where('pipeline_name', 'multi-step-pipeline')
             ->first();
 
-        $steps = PipelineStep::query()
-            ->where('run_id', $run->id)
-            ->get();
+        $steps = $run->steps;
 
         $this->assertCount(2, $steps);
         $this->assertEquals('ok', $steps[0]->status);
+        $this->assertModelExists($steps[0]->run);
     }
 
     /**
