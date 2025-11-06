@@ -32,7 +32,7 @@ final class PipelineContextTest extends TestCase
 
     public function test_make_creates_instance_with_meta_and_custom_resolver(): void
     {
-        $fakeResolver = new class implements ConflictResolverInterface {
+        $fakeResolver = new class () implements ConflictResolverInterface {
             public bool $called = false;
             public function resolve($a, $b, $ctx): PipelineResultInterface
             {
@@ -48,7 +48,7 @@ final class PipelineContextTest extends TestCase
         );
 
         $result = new GenericPipelineResult('r', ['ok' => true]);
-        $context->addResult($result);
+        $context->setResult($result);
 
         $this->assertEquals(['foo' => 'bar'], $context->payload);
         $this->assertEquals(['env' => 'test'], $context->meta);
@@ -65,7 +65,7 @@ final class PipelineContextTest extends TestCase
         $context = new PipelineContext([]);
         $result = new GenericPipelineResult('key1', ['data' => 'value']);
 
-        $context->addResult($result);
+        $context->setResult($result);
 
         $this->assertTrue($context->hasResult('key1'));
         $this->assertEquals($result, $context->getResult('key1'));
@@ -87,8 +87,8 @@ final class PipelineContextTest extends TestCase
     public function test_build_returns_array_of_result_data(): void
     {
         $context = new PipelineContext([]);
-        $context->addResult(new GenericPipelineResult('k1', ['a' => 1]));
-        $context->addResult(new GenericPipelineResult('k2', ['b' => 2]));
+        $context->setResult(new GenericPipelineResult('k1', ['a' => 1]));
+        $context->setResult(new GenericPipelineResult('k2', ['b' => 2]));
 
         $built = $context->build();
 
@@ -125,8 +125,8 @@ final class PipelineContextTest extends TestCase
             ConflictPolicy::MERGE
         );
 
-        $context->addResult($result1);
-        $context->addResult($result2);
+        $context->setResult($result1);
+        $context->setResult($result2);
 
         $merged = $context->getResult('email');
         $this->assertEquals([
@@ -149,8 +149,8 @@ final class PipelineContextTest extends TestCase
             ConflictPolicy::OVERWRITE
         );
 
-        $context->addResult($result1);
-        $context->addResult($result2);
+        $context->setResult($result1);
+        $context->setResult($result2);
 
         $final = $context->getResult('key');
         $this->assertEquals(['new' => 'data'], $final->getData());
@@ -170,8 +170,8 @@ final class PipelineContextTest extends TestCase
             ConflictPolicy::SKIP
         );
 
-        $context->addResult($result1);
-        $context->addResult($result2);
+        $context->setResult($result1);
+        $context->setResult($result2);
 
         $final = $context->getResult('key');
         $this->assertEquals(['original' => 'data'], $final->getData());
@@ -184,7 +184,7 @@ final class PipelineContextTest extends TestCase
     {
         $context = new PipelineContext(['user' => 'john']);
         $context->meta['pipeline_id'] = 'test-123';
-        $context->addResult(new GenericPipelineResult('key1', ['val' => 1]));
+        $context->setResult(new GenericPipelineResult('key1', ['val' => 1]));
 
         $array = $context->toArray();
         $this->assertIsArray($array);

@@ -68,7 +68,7 @@ final class PipelineExecutor
     private function resolveSteps(array $stepClasses): array
     {
         return array_map(
-            fn(string $class) => app($class),
+            fn (string $class) => app($class),
             $stepClasses
         );
     }

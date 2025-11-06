@@ -13,7 +13,6 @@ use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
 use DataProcessingPipeline\Services\Notifiers\NullNotifier;
 use DataProcessingPipeline\Services\PipelineExecutor;
-use DataProcessingPipeline\Services\PipelineWebhookNotifier;
 use Illuminate\Support\ServiceProvider;
 
 class PipelineServiceProvider extends ServiceProvider

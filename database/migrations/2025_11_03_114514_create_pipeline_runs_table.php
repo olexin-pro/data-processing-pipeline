@@ -14,11 +14,11 @@ return new class () extends Migration {
             $table->id();
             $table->string('pipeline_name');
             $table->string('status'); // running, completed, failed
-            $table->json('payload_json');
-            $table->json('final_json')->nullable();
-            $table->json('meta_json')->nullable();
-            $table->timestamp('created_at');
-            $table->timestamp('finished_at')->nullable();
+            $table->jsonb('payload');
+            $table->jsonb('final')->nullable();
+            $table->jsonb('meta')->nullable();
+            $table->dateTimeTz('created_at');
+            $table->dateTimeTz('finished_at')->nullable();
 
             $table->index(['pipeline_name', 'created_at']);
             $table->index('status');

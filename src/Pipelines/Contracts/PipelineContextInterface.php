@@ -6,7 +6,7 @@ namespace DataProcessingPipeline\Pipelines\Contracts;
 
 interface PipelineContextInterface extends \JsonSerializable
 {
-    public function addResult(PipelineResultInterface $result): void;
+    public function setResult(PipelineResultInterface $result): void;
 
     public function getResult(string $key): ?PipelineResultInterface;
 
@@ -17,8 +17,4 @@ interface PipelineContextInterface extends \JsonSerializable
     public function build(): array;
 
     public static function fromArray(array $data): PipelineContextInterface;
-    public function getMeta(): array;
-    public function getPayload(): array;
-    public function setMeta(): void;
-    public function setPayload(): void;
 }

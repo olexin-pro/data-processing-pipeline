@@ -9,9 +9,12 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Support\Traits\Macroable;
 
 final class PipelineContext implements PipelineContextInterface
 {
+    use Macroable;
+
     /**
      * @throws BindingResolutionException
      */
@@ -24,7 +27,7 @@ final class PipelineContext implements PipelineContextInterface
         $this->conflictResolver = $conflictResolver ?? app()->make(ConflictResolverInterface::class);
     }
 
-    public function addResult(PipelineResultInterface $result): void
+    public function setResult(PipelineResultInterface $result): void
     {
         $key = $result->getKey();
 

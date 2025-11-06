@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace DataProcessingPipeline\Pipelines\Runner;
 
-use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineRunnerInterface;
@@ -31,7 +30,7 @@ final class PipelineRunner implements PipelineRunnerInterface
 
             try {
                 $result = $step->handle($context);
-                $context->addResult($result);
+                $context->setResult($result);
                 $status = $result->getStatus();
             } catch (\Throwable $e) {
                 $status = ResultStatus::FAILED;

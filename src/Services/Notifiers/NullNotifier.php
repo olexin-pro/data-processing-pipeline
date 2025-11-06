@@ -13,11 +13,13 @@ final class NullNotifier implements PipelineNotifierInterface
         PipelineContextInterface $context,
         ?string $pipelineName = null,
         array $meta = []
-    ): void { }
+    ): void {
+    }
 
     public function notifyFailure(
         \Throwable $exception,
         ?string $pipelineName = null,
         array $meta = []
-    ): void { }
+    ): void {
+    }
 }

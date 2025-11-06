@@ -6,7 +6,6 @@ namespace DataProcessingPipeline\Jobs;
 
 use DataProcessingPipeline\Pipelines\Contracts\PipelineNotifierInterface;
 use DataProcessingPipeline\Services\PipelineExecutor;
-use DataProcessingPipeline\Services\PipelineWebhookNotifier;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,7 +16,10 @@ use Illuminate\Support\Facades\Log;
 
 final class ProcessPipelineJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * @param array $contextData Serialized context data
@@ -31,7 +33,8 @@ final class ProcessPipelineJob implements ShouldQueue
         private readonly ?string $pipelineName = null,
         private readonly bool $recordHistory = true,
         private readonly ?string $notifierClass = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws BindingResolutionException
@@ -67,7 +70,8 @@ final class ProcessPipelineJob implements ShouldQueue
 
         if ($this->notifierClass) {
             $this->resolveNotifier()->notifyFailure(
-                $exception, $this->pipelineName
+                $exception,
+                $this->pipelineName
             );
         }
     }

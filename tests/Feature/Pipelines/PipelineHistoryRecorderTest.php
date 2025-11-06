@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace DataProcessingPipeline\Tests\Feature\Pipelines;
 
+use DataProcessingPipeline\Models\PipelineRun;
+use DataProcessingPipeline\Models\PipelineStep;
 use DataProcessingPipeline\Pipelines\Context\PipelineContext;
 use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
-use DataProcessingPipeline\Pipelines\Resolution\ConflictResolver;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\SimpleStep;
 use DataProcessingPipeline\Tests\TestCase;
 
@@ -54,11 +54,11 @@ final class PipelineHistoryRecorderTest extends TestCase
 
         $runner->run($context);
 
-        $run = DB::table('pipeline_runs')
+        $run = PipelineRun::query()
             ->where('pipeline_name', 'multi-step-pipeline')
             ->first();
 
-        $steps = DB::table('pipeline_steps')
+        $steps = PipelineStep::query()
             ->where('run_id', $run->id)
             ->get();
 

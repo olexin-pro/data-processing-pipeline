@@ -11,7 +11,8 @@ final class LogNotifier
 {
     public function __construct(
         private string $channel = 'pipeline'
-    ) {}
+    ) {
+    }
 
     public function notifySuccess(
         PipelineContextInterface $context,

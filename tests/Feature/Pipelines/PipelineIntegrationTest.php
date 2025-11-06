@@ -9,7 +9,6 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
-use DataProcessingPipeline\Pipelines\Resolution\ConflictResolver;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
 use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\EmailDomainExtractorStep;
@@ -56,7 +55,7 @@ final class PipelineIntegrationTest extends TestCase
     public function test_context_serialization_roundtrip(): void
     {
         $original = new PipelineContext(['test' => 'data']);
-        $original->addResult(new GenericPipelineResult('key1', ['val' => 123]));
+        $original->setResult(new GenericPipelineResult('key1', ['val' => 123]));
         $original->meta['custom'] = 'metadata';
 
         $json = json_encode($original);
@@ -128,8 +127,8 @@ final class PipelineIntegrationTest extends TestCase
             priority: 20
         );
 
-        $context->addResult($lowPriority);
-        $context->addResult($highPriority);
+        $context->setResult($lowPriority);
+        $context->setResult($highPriority);
 
         $result = $context->getResult('data');
 

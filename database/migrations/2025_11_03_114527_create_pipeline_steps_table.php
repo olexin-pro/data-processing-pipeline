@@ -18,8 +18,8 @@ return new class () extends Migration {
             $table->string('policy')->nullable();
             $table->string('status'); // ok, skipped, failed
             $table->decimal('duration_ms', 10, 2);
-            $table->json('result_json')->nullable();
-            $table->timestamp('created_at');
+            $table->json('result')->nullable();
+            $table->dateTimeTz('created_at');
 
             $table->index('run_id');
             $table->index('step_class');

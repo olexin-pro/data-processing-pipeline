@@ -95,7 +95,7 @@ final class PipelineRunnerTest extends TestCase
      */
     public function test_recorder_is_used_for_each_step_and_final(): void
     {
-        $recorder = new class implements PipelineHistoryRecorderInterface {
+        $recorder = new class () implements PipelineHistoryRecorderInterface {
             public array $recordedSteps = [];
             public bool $finalCalled = false;
 
@@ -137,7 +137,7 @@ final class PipelineRunnerTest extends TestCase
      */
     public function test_recorder_is_called_even_when_step_fails(): void
     {
-        $recorder = new class implements PipelineHistoryRecorderInterface {
+        $recorder = new class () implements PipelineHistoryRecorderInterface {
             public array $recordedSteps = [];
             public bool $finalCalled = false;
 

@@ -123,7 +123,7 @@ final class ConflictResolverTest extends TestCase
 
     public function test_custom_uses_valid_custom_resolver(): void
     {
-        $class = new class implements ConflictResolverInterface {
+        $class = new class () implements ConflictResolverInterface {
             public function resolve($a, $b, $ctx): PipelineResultInterface
             {
                 return new GenericPipelineResult('key', ['custom' => true]);
@@ -148,12 +148,14 @@ final class ConflictResolverTest extends TestCase
 
     public function test_combine_values_with_two_arrays(): void
     {
-        $existing = new GenericPipelineResult('k',
+        $existing = new GenericPipelineResult(
+            'k',
             ['nested' => ['a' => 1, 'b' => 2]],
             ConflictPolicy::MERGE,
             10
         );
-        $incoming = new GenericPipelineResult('k',
+        $incoming = new GenericPipelineResult(
+            'k',
             ['nested' => ['b' => 3, 'c' => 4]],
             ConflictPolicy::MERGE,
             10
