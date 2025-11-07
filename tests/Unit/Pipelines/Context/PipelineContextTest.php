@@ -228,4 +228,19 @@ final class PipelineContextTest extends TestCase
         $this->assertEquals(['restored' => true], $context->getResult('key1')->getData());
         $this->assertEquals(['restored' => true], $context->getMeta());
     }
+
+    public function test_set_result_throws_when_conflict_resolver_is_null(): void
+    {
+        $context = new PipelineContext([]);
+        $context->setResult(new GenericPipelineResult('dup', ['a' => 1]));
+
+        $ref = new \ReflectionClass($context);
+        $prop = $ref->getProperty('conflictResolver');
+        $prop->setValue($context, null);
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Conflict resolver is not initialized');
+
+        $context->setResult(new GenericPipelineResult('dup', ['b' => 2]));
+    }
 }

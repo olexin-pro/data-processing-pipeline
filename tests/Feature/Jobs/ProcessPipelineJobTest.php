@@ -117,4 +117,21 @@ final class ProcessPipelineJobTest extends TestCase
         $this->assertEquals([10, 30, 60], $job->backoff());
         $this->assertInstanceOf(\DateTime::class, $job->retryUntil());
     }
+
+    public function test_resolve_notifier_throws_when_notifier_not_provided(): void
+    {
+        $job = new ProcessPipelineJob(
+            contextData: [],
+            stepClasses: [],
+            pipelineName: 'no-notifier',
+            notifierClass: null
+        );
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Notifier class not provided.');
+
+        $ref = new \ReflectionClass($job);
+        $method = $ref->getMethod('resolveNotifier');
+        $method->invoke($job);
+    }
 }
