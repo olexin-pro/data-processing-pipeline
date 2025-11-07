@@ -10,6 +10,7 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineRunnerInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
+use Illuminate\Support\Facades\Log;
 
 final class PipelineRunner implements PipelineRunnerInterface
 {
@@ -32,6 +33,13 @@ final class PipelineRunner implements PipelineRunnerInterface
             try {
                 $result = $step->handle($context);
                 if (!$result instanceof PipelineResultInterface) {
+                    if (! is_null($result)) {
+                        Log::warning(sprintf(
+                            'Pipeline step %s returned invalid result of type %s',
+                            get_class($step),
+                            get_debug_type($result)
+                        ));
+                    }
                     continue;
                 }
                 $context->setResult($result);
