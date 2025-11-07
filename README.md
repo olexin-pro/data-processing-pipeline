@@ -22,6 +22,33 @@ A robust, strictly-typed, and extensible data processing pipeline system for Lar
 * 🧩 **Extensible** - Easy to add custom steps and conflict resolvers
 * 🧪 **Well Tested** - Comprehensive test coverage
 
+### 📑 Quick Links
+
+* [📦 Installation](#-installation)
+* [🚀 Quick Start](#-quick-start)
+
+    * [1. Create a Pipeline Step](#1-create-a-pipeline-step)
+    * [2. Run the Pipeline](#2-run-the-pipeline)
+    * [3. Queue Execution](#3-queue-execution)
+* [📚 Core Concepts](#-core-concepts)
+
+    * [Pipeline Context](#pipeline-context)
+    * [Pipeline Results](#pipeline-results)
+    * [Conflict Policies](#conflict-policies)
+* [🔧 Advanced Usage](#-advanced-usage)
+
+    * [Priority System](#priority-system)
+    * [Execution History](#execution-history)
+    * [Error Handling](#error-handling)
+    * [Dynamic Steps](#dynamic-steps)
+    * [Conditional Steps](#conditional-steps)
+* [🎯 Real-World Example](#-real-world-example)
+* [🧪 Testing](#-testing)
+* [📖 API Reference](#-api-reference)
+
+    * [PipelineContext](#pipelinecontext)
+    * [GenericPipelineResult](#genericpipelineresult)
+
 ---
 
 ## 📦 Installation
@@ -69,6 +96,40 @@ class EmailFormatterStep implements PipelineStepInterface
         );
     }
 }
+```
+
+```php
+<?php
+
+namespace App\Pipelines\Steps;
+
+use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
+use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
+use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
+
+class EmailValidatorStep implements PipelineStepInterface
+{
+    public function handle(PipelineContextInterface $context): GenericPipelineResult
+    {
+        $emailData = $context->getResult('email')->getData();
+        $email = $emailData['value'] ?? null;
+
+        $isValid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+
+        return new GenericPipelineResult(
+            key: 'email',
+            data: [
+                'value' => $email
+                'status' => $isValid ? 'verified' : 'invalid',
+            ],
+            policy: ConflictPolicy::MERGE,
+            priority: 20,
+            provenance: self::class
+        );
+    }
+}
+
 ```
 
 ### 2. Run the Pipeline
