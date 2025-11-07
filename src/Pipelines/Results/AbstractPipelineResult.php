@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace DataProcessingPipeline\Pipelines\Results;
 
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
+use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
 use Illuminate\Support\Traits\Macroable;
 
-abstract class AbstractPipelineResult implements PipelineResultInterface
+abstract class AbstractPipelineResult implements PipelineResultInterface, SerializablePipelineResultInterface
 {
     public function __construct(
         protected string $key,
@@ -68,5 +69,10 @@ abstract class AbstractPipelineResult implements PipelineResultInterface
             'status' => $this->status->value,
             'meta' => $this->meta,
         ];
+    }
+
+    public function toArray(): array
+    {
+        return $this->jsonSerialize();
     }
 }

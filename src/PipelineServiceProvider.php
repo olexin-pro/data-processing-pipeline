@@ -21,16 +21,30 @@ class PipelineServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        $this->app->bind(ConflictResolverInterface::class, ConflictResolver::class);
-        $this->app->bind(PipelineResultInterface::class, GenericPipelineResult::class);
-        $this->app->bind(PipelineHistoryRecorderInterface::class, PipelineHistoryRecorder::class);
+        if (!$this->app->bound(ConflictResolverInterface::class)) {
+            $this->app->bind(ConflictResolverInterface::class, ConflictResolver::class);
+        }
+        if (!$this->app->bound(PipelineResultInterface::class)) {
+            $this->app->bind(PipelineResultInterface::class, GenericPipelineResult::class);
+        }
 
-        $this->app->bind(PipelineRunnerInterface::class, function ($app) {
-            return new PipelineRunner(
-                steps: [],
-                recorder: null
-            );
-        });
+        if (!$this->app->bound(PipelineRunnerInterface::class)) {
+            $this->app->bind(PipelineRunnerInterface::class, function ($app, $params) {
+                return new PipelineRunner(
+                    steps: $params['steps'] ?? [],
+                    recorder: $params['recorder'] ?? null
+                );
+            });
+        }
+
+        if (!$this->app->bound(PipelineHistoryRecorderInterface::class)) {
+            $this->app->bind(PipelineHistoryRecorderInterface::class, function ($app, $params) {
+                return new PipelineHistoryRecorder(
+                    pipelineName: $params['pipelineName'] ?? 'unnamed-pipeline',
+                    enabled: $params['enabled'] ?? true
+                );
+            });
+        }
 
         $this->app->singleton(PipelineExecutor::class);
         $this->app->singleton(PipelineNotifierInterface::class, NullNotifier::class);

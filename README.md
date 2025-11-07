@@ -102,20 +102,28 @@ $built = $result->build();
 ### 3. Queue Execution
 
 ```php
-use App\Jobs\ProcessPipelineJob;
 use App\Pipelines\Steps\EmailFormatterStep;
 use App\Pipelines\Steps\EmailValidatorStep;
 use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+use DataProcessingPipeline\Jobs\ProcessPipelineJob;
+use DataProcessingPipeline\Services\Notifiers\LogNotifier;
 
-$context = PipelineContext::make(['user' => ['email' => 'john@example.com']]);
+$payload = ['user' => ['email' => 'john@example.com']];
+
+$steps = [
+    EmailFormatterStep::class,
+    EmailValidatorStep::class,
+];
+
+
+$context = PipelineContext::make($payload);
 
 ProcessPipelineJob::dispatch(
     contextData: $context->toArray(),
-    stepClasses: [
-        EmailFormatterStep::class,
-        EmailValidatorStep::class,
-    ],
+    stepClasses: $steps,
     pipelineName: 'email-processing'
+    recordHistory: false
+    notifierClass: LogNotifier::class
 );
 ```
 

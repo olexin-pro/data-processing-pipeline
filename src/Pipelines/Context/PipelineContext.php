@@ -7,11 +7,12 @@ namespace DataProcessingPipeline\Pipelines\Context;
 use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
+use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Traits\Macroable;
 
-final class PipelineContext implements PipelineContextInterface
+final class PipelineContext implements PipelineContextInterface, SerializablePipelineContextInterface
 {
     use Macroable;
 
@@ -94,6 +95,26 @@ final class PipelineContext implements PipelineContextInterface
         return $this->toArray();
     }
 
+
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public static function fromArray(array $data): static
+    {
+        $context = new self(
+            payload: $data['payload'] ?? [],
+            results: [],
+            meta: $data['meta'] ?? []
+        );
+
+        foreach ($data['results'] ?? [] as $key => $resultData) {
+            $context->results[$key] = GenericPipelineResult::fromArray($resultData);
+        }
+
+        return $context;
+    }
+
     /**
      * @throws BindingResolutionException
      */
@@ -102,7 +123,7 @@ final class PipelineContext implements PipelineContextInterface
         array $results = [],
         array $meta = [],
         ?ConflictResolverInterface $conflictResolver = null
-    ): PipelineContextInterface {
+    ): static {
         return new self(
             payload: $payload,
             results: $results,

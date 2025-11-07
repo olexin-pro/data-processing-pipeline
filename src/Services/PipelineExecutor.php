@@ -25,6 +25,7 @@ final class PipelineExecutor
      * @param string|null $pipelineName
      * @param bool $recordHistory
      * @return PipelineContextInterface
+     * @throws BindingResolutionException
      */
     public function execute(
         PipelineContextInterface $context,
@@ -34,10 +35,10 @@ final class PipelineExecutor
     ): PipelineContextInterface {
         $recorder = $this->createRecorder($pipelineName, $recordHistory);
 
-        $runner = new PipelineRunner(
-            steps: $steps,
-            recorder: $recorder
-        );
+        $runner = app()->makeWith(PipelineRunner::class, [
+            'steps' => $steps,
+            'recorder' =>  $recorder
+        ]);
 
         return $runner->run($context);
     }
@@ -80,6 +81,7 @@ final class PipelineExecutor
 
     /**
      * Create history recorder if needed.
+     * @throws BindingResolutionException
      */
     private function createRecorder(?string $pipelineName, bool $recordHistory): ?PipelineHistoryRecorderInterface
     {
@@ -87,6 +89,6 @@ final class PipelineExecutor
             return null;
         }
 
-        return new PipelineHistoryRecorder($pipelineName, true);
+        return app()->makeWith(PipelineHistoryRecorder::class, ['pipelineName' => $pipelineName, 'enabled' => true]);
     }
 }

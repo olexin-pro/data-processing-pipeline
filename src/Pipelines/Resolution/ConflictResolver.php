@@ -37,7 +37,6 @@ final class ConflictResolver implements ConflictResolverInterface
         $priorityA = $a->getPriority();
         $priorityB = $b->getPriority();
 
-        // если оба не массивы — просто выбираем по приоритету
         if (!is_array($dataA) || !is_array($dataB)) {
             $merged = $priorityB > $priorityA ? $dataB : $dataA;
         } else {

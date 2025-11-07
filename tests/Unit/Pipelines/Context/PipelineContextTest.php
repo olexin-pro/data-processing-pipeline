@@ -76,7 +76,7 @@ final class PipelineContextTest extends TestCase
      */
     public function test_get_content_returns_nested_value_and_default(): void
     {
-        $context = new PipelineContext(['user' => ['info' => ['email' => 'a@b.c']]]);
+        $context = PipelineContext::make(['user' => ['info' => ['email' => 'a@b.c']]]);
         $this->assertEquals('a@b.c', $context->getContent('user.info.email'));
         $this->assertEquals('default', $context->getContent('user.missing', 'default'));
     }
@@ -86,7 +86,7 @@ final class PipelineContextTest extends TestCase
      */
     public function test_build_returns_array_of_result_data(): void
     {
-        $context = new PipelineContext([]);
+        $context = PipelineContext::make([]);
         $context->setResult(new GenericPipelineResult('k1', ['a' => 1]));
         $context->setResult(new GenericPipelineResult('k2', ['b' => 2]));
 
@@ -221,7 +221,7 @@ final class PipelineContextTest extends TestCase
             'meta' => ['restored' => true],
         ];
 
-        $context = PipelineContext::make($data);
+        $context = PipelineContext::fromArray($data);
 
         $this->assertEquals(['original' => 'payload'], $context->getPayload());
         $this->assertTrue($context->hasResult('key1'));
