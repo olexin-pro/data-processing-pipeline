@@ -42,8 +42,6 @@ This creates two tables:
 * `pipeline_runs` - Stores pipeline execution records
 * `pipeline_steps` - Stores individual step execution details
 
----
-
 ## 🚀 Quick Start
 
 ### 1. Create a Pipeline Step
@@ -132,9 +130,14 @@ The context is an immutable container that holds:
 * **Meta** - Arbitrary metadata (errors, timestamps, etc.)
 
 ```php
-$context = new PipelineContext(
+
+use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
+
+$context = new PipelineContext::make(
     payload: ['user' => ['id' => 1, 'email' => 'test@example.com']],
-    meta: ['request_id' => 'abc-123']
+    meta: ['request_id' => 'abc-123'],
+    conflictResolver: app()->make(ConflictResolverInterface::class)
 );
 ```
 
@@ -154,8 +157,6 @@ interface PipelineResultInterface
     public function getMeta(): array;
 }
 ```
-
----
 
 ### Conflict Policies
 
@@ -253,8 +254,6 @@ new GenericPipelineResult(
 // Result: theme = 'dark'
 ```
 
----
-
 ### Execution History
 
 Enable automatic logging:
@@ -281,8 +280,6 @@ $runner = app(PipelineRunnerInterface::class)
 
 $runner->run($context);
 ```
-
----
 
 ### Error Handling
 
@@ -418,7 +415,7 @@ final class CalculateProductsStep implements PipelineStepInterface
 
         return new GenericPipelineResult(
             key: 'products',
-            data: ['items' => $products],
+            data: $products,
             policy: ConflictPolicy::MERGE
         );
     }
@@ -431,7 +428,7 @@ final class CalculateTotalsStep implements PipelineStepInterface
 {
     public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
-        $products = $context->getResult('products')?->getData()['items'] ?? [];
+        $products = $context->getResult('products')?->getData() ?? [];
 
         $subtotal = array_sum(array_column($products, 'total'));
         $tax = round($subtotal * 0.1, 2);
@@ -511,14 +508,12 @@ $totals = $result->getResult('totals')->getData();
 ]
 */
 
-$payload = $result->build();
+$data = $result->build();
 /*
 [
     'products' => [
-        'items' => [
-            ['name' => 'Product A', 'price' => 100.0, 'qty' => 1, 'total' => 100.0],
-            ['name' => 'Product B', 'price' => 50.0,  'qty' => 8, 'total' => 400.0],
-        ],
+        ['name' => 'Product A', 'price' => 100.0, 'qty' => 1, 'total' => 100.0],
+        ['name' => 'Product B', 'price' => 50.0,  'qty' => 8, 'total' => 400.0],,
     ],
     'totals' => [
         'subtotal' => 500,
@@ -542,8 +537,6 @@ $payload = $result->build();
 ```bash
 composer run test
 ```
-
----
 
 ## 📖 API Reference
 
@@ -573,14 +566,14 @@ $context->getContent(string $key, mixed $default = null): mixed
 $context->hasResult(string $key): bool
 $context->toArray(): array
 $context->build(): array
-PipelineContext::fromArray(array $data): self
 ```
-
----
 
 ### GenericPipelineResult
 
 ```php
+use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
+use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
+
 new GenericPipelineResult(
     string $key,
     int|float|array|bool|string|null $data,
@@ -591,10 +584,16 @@ new GenericPipelineResult(
     array $meta = []
 );
 
-GenericPipelineResult::fromArray(array $data): self
+GenericPipelineResult::make(
+        string $key,
+        int|float|array|bool|string|null $data,
+        ConflictPolicy $policy = ConflictPolicy::MERGE,
+        int $priority = 10,
+        string $provenance = '',
+        ResultStatus $status = ResultStatus::OK,
+        array $meta =[],
+    ): self
 ```
-
----
 
 ## 🤝 Contributing
 
@@ -616,7 +615,7 @@ This package is open-sourced software licensed under the [MIT license](LICENSE).
 
 ## 📧 Support
 
-For support, please open an issue on GitHub or contact [aizharyk@olexin.pro](mailto:aizharyk@olexin.pro)
+For support, please open an issue on GitHub
 
 ---
 

@@ -42,7 +42,7 @@ final class ProcessPipelineJob implements ShouldQueue
     public function handle(
         PipelineExecutor $executor
     ): void {
-        $result = $executor->executeFromArray(
+        $result = $executor->run(
             contextData: $this->contextData,
             stepClasses: $this->stepClasses,
             pipelineName: $this->pipelineName,

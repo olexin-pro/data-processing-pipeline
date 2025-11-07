@@ -64,19 +64,17 @@ final class GenericPipelineResultTest extends TestCase
         $this->assertEquals('ok', $json['status']);
     }
 
-    public function test_can_create_from_array(): void
+    public function test_can_create_make(): void
     {
-        $data = [
-            'key' => 'restored',
-            'data' => ['num' => 42],
-            'policy' => 'skip',
-            'priority' => 30,
-            'provenance' => 'RestoredStep',
-            'status' => 'skipped',
-            'meta' => ['restored' => true]
-        ];
-
-        $result = GenericPipelineResult::fromArray($data);
+        $result = GenericPipelineResult::make(
+            key: 'restored',
+            data: ['num' => 42],
+            policy: ConflictPolicy::SKIP,
+            priority: 30,
+            provenance: 'RestoredStep',
+            status: ResultStatus::SKIPPED,
+            meta: ['restored' => true]
+        );
 
         $this->assertEquals('restored', $result->getKey());
         $this->assertEquals(['num' => 42], $result->getData());

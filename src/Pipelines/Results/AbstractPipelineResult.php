@@ -11,8 +11,6 @@ use Illuminate\Support\Traits\Macroable;
 
 abstract class AbstractPipelineResult implements PipelineResultInterface
 {
-    use Macroable;
-
     public function __construct(
         protected string $key,
         protected int|float|array|bool|string|null $data,
