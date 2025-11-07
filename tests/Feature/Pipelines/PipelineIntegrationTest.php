@@ -16,6 +16,7 @@ use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\EmailFormatterStep;
 use DataProcessingPipeline\Tests\Feature\Pipelines\Steps\EmailValidatorStep;
 use DataProcessingPipeline\Tests\TestCase;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Support\Facades\Log;
 
 final class PipelineIntegrationTest extends TestCase
 {
@@ -169,5 +170,38 @@ final class PipelineIntegrationTest extends TestCase
 
         $this->assertTrue($result->hasResult('processed'));
         $this->assertEquals(['ok' => true], $result->getResult('processed')->getData());
+    }
+
+    public function test_step_returning_invalid_type_triggers_warning_but_pipeline_continues(): void
+    {
+        $context = new PipelineContext(['input' => 'data']);
+
+        $invalidStep = new class () {
+            public function handle(PipelineContextInterface $context): mixed
+            {
+                return 'invalid-result';
+            }
+        };
+
+        $validStep = new class () implements PipelineStepInterface {
+            public function handle(PipelineContextInterface $context): ?PipelineResultInterface
+            {
+                return new GenericPipelineResult('ok', ['status' => 'fine']);
+            }
+        };
+
+        $runner = new PipelineRunner([$invalidStep, $validStep]);
+
+        Log::shouldReceive('warning')
+            ->once()
+            ->withArgs(function ($message) use ($invalidStep) {
+                return str_contains($message, get_class($invalidStep))
+                    && str_contains($message, 'string');
+            });
+
+        $result = $runner->run($context);
+
+        $this->assertInstanceOf(PipelineContextInterface::class, $result);
+        $this->assertTrue($result->hasResult('ok'));
     }
 }

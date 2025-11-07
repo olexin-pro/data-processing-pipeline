@@ -64,6 +64,25 @@ final class GenericPipelineResultTest extends TestCase
         $this->assertEquals('ok', $json['status']);
     }
 
+    public function test_to_array(): void
+    {
+        $result = new GenericPipelineResult(
+            key: 'test',
+            data: ['value' => 123],
+            policy: ConflictPolicy::OVERWRITE,
+            priority: 20
+        );
+
+        $json = $result->toArray();
+
+        $this->assertIsArray($json);
+        $this->assertEquals('test', $json['key']);
+        $this->assertEquals(['value' => 123], $json['data']);
+        $this->assertEquals('overwrite', $json['policy']);
+        $this->assertEquals(20, $json['priority']);
+        $this->assertEquals('ok', $json['status']);
+    }
+
     public function test_can_create_make(): void
     {
         $result = GenericPipelineResult::make(
