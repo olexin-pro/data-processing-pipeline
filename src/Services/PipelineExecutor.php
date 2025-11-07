@@ -89,6 +89,6 @@ final class PipelineExecutor
             return null;
         }
 
-        return app()->makeWith(PipelineHistoryRecorder::class, ['pipelineName' => $pipelineName, 'enabled' => true]);
+        return app()->makeWith(PipelineHistoryRecorderInterface::class, ['pipelineName' => $pipelineName, 'enabled' => true]);
     }
 }

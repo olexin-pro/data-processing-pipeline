@@ -139,4 +139,35 @@ final class PipelineIntegrationTest extends TestCase
 
         $this->assertEquals(20, $result->getPriority());
     }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function test_step_returning_null_does_not_break_pipeline(): void
+    {
+        $context = new PipelineContext(['input' => 'data']);
+
+        $nullStep = new class() implements PipelineStepInterface {
+            public function handle(PipelineContextInterface $context): ?PipelineResultInterface
+            {
+                return null;
+            }
+        };
+
+        $validStep = new class() implements PipelineStepInterface {
+            public function handle(PipelineContextInterface $context): ?PipelineResultInterface
+            {
+                return new GenericPipelineResult('processed', ['ok' => true]);
+            }
+        };
+
+        $runner = new PipelineRunner([$nullStep, $validStep]);
+
+        $result = $runner->run($context);
+
+        $this->assertFalse($result->hasResult('null'));
+
+        $this->assertTrue($result->hasResult('processed'));
+        $this->assertEquals(['ok' => true], $result->getResult('processed')->getData());
+    }
 }

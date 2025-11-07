@@ -280,6 +280,13 @@ $runner = new PipelineRunner(
 );
 
 // or
+$recorder = app()->makeWith(
+    PipelineHistoryRecorderInterface::class, 
+    [
+        'pipelineName' => $pipelineName, 
+        'enabled' => true
+    ]
+);
 
 $runner = app(PipelineRunnerInterface::class)
     ->setRecorder($recorder)
@@ -348,11 +355,7 @@ class ConditionalStep implements PipelineStepInterface
     public function handle(PipelineContextInterface $context): PipelineResultInterface
     {
         if (!$context->getContent('process_email')) {
-            return new GenericPipelineResult(
-                key: 'email',
-                data: [],
-                status: ResultStatus::SKIPPED
-            );
+            return null;
         }
 
         // normal logic...

@@ -6,5 +6,5 @@ namespace DataProcessingPipeline\Pipelines\Contracts;
 
 interface PipelineStepInterface
 {
-    public function handle(PipelineContextInterface $context): PipelineResultInterface;
+    public function handle(PipelineContextInterface $context): PipelineResultInterface|null;
 }

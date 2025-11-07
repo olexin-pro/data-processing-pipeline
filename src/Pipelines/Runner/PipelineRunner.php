@@ -6,6 +6,7 @@ namespace DataProcessingPipeline\Pipelines\Runner;
 
 use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineRunnerInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
@@ -30,6 +31,9 @@ final class PipelineRunner implements PipelineRunnerInterface
 
             try {
                 $result = $step->handle($context);
+                if (!$result instanceof PipelineResultInterface) {
+                    continue;
+                }
                 $context->setResult($result);
                 $status = $result->getStatus();
             } catch (\Throwable $e) {
