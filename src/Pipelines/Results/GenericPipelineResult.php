@@ -4,14 +4,27 @@ declare(strict_types=1);
 
 namespace DataProcessingPipeline\Pipelines\Results;
 
+use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
 
 final class GenericPipelineResult extends AbstractPipelineResult
 {
     /**
-     * @param array $data
-     * @return static
+     * @param array{
+     *      key: string,
+     *      data?: int|float|array<mixed>|bool|string|null,
+     *      policy?: string,
+     *      priority?: int,
+     *      provenance?: string,
+     *      status?: string,
+     *      meta?: array{
+     *          resolver?: class-string<ConflictResolverInterface>|null
+     *      } & array<string|int, mixed>
+     * } $data
+     *
+     * @return PipelineResultInterface&static
      */
     public static function fromArray(array $data): static
     {
@@ -26,6 +39,16 @@ final class GenericPipelineResult extends AbstractPipelineResult
         );
     }
 
+    /**
+     * @param string $key
+     * @param int|float|array<mixed>|bool|string|null $data
+     * @param ConflictPolicy $policy
+     * @param int $priority
+     * @param string $provenance
+     * @param ResultStatus $status
+     * @param array<string, mixed> $meta
+     * @return self
+     */
     public static function make(
         string $key,
         int|float|array|bool|string|null $data = [],

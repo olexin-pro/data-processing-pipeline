@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DataProcessingPipeline\Pipelines\Results;
 
+use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
@@ -12,6 +13,18 @@ use Illuminate\Support\Traits\Macroable;
 
 abstract class AbstractPipelineResult implements PipelineResultInterface, SerializablePipelineResultInterface
 {
+
+    /**
+     * @param string $key
+     * @param int|float|array<mixed>|bool|string|null $data
+     * @param ConflictPolicy $policy
+     * @param int $priority
+     * @param string $provenance
+     * @param ResultStatus $status
+     * @param array{
+     *           resolver?: class-string<ConflictResolverInterface>|null
+     *       } & array<string|int, mixed> $meta
+     */
     public function __construct(
         protected string $key,
         protected int|float|array|bool|string|null $data,
@@ -28,6 +41,10 @@ abstract class AbstractPipelineResult implements PipelineResultInterface, Serial
         return $this->key;
     }
 
+
+    /**
+     * @return int|float|array<mixed>|bool|string|null
+     */
     public function getData(): int|float|array|bool|string|null
     {
         return $this->data;
@@ -53,11 +70,29 @@ abstract class AbstractPipelineResult implements PipelineResultInterface, Serial
         return $this->status;
     }
 
+    /**
+     * @return array{
+     *            resolver?: class-string<ConflictResolverInterface>|null
+     *        } & array<string|int, mixed>
+     */
     public function getMeta(): array
     {
         return $this->meta;
     }
 
+    /**
+     * @return array{
+     *      key: string,
+     *      data?: int|float|array<mixed>|bool|string|null,
+     *      policy?: string,
+     *      priority?: int,
+     *      provenance?: string,
+     *      status?: string,
+     *      meta?: array{
+     *           resolver?: class-string<ConflictResolverInterface>|null
+     *       } & array<string|int, mixed>
+     *  }
+     */
     public function jsonSerialize(): array
     {
         return [
@@ -70,7 +105,19 @@ abstract class AbstractPipelineResult implements PipelineResultInterface, Serial
             'meta' => $this->meta,
         ];
     }
-
+    /**
+     * @return array{
+     *      key: string,
+     *      data?: int|float|array<mixed>|bool|string|null,
+     *      policy?: string,
+     *      priority?: int,
+     *      provenance?: string,
+     *      status?: string,
+     *      meta?: array{
+     *           resolver?: class-string<ConflictResolverInterface>|null
+     *       } & array<string|int, mixed>
+     *  }
+     */
     public function toArray(): array
     {
         return $this->jsonSerialize();

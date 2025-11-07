@@ -8,6 +8,7 @@ use DataProcessingPipeline\Pipelines\Context\PipelineContext;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
+use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineContextInterface;
 use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -20,7 +21,7 @@ final class PipelineExecutor
     /**
      * Execute pipeline with given context and steps.
      *
-     * @param PipelineContextInterface $context
+     * @param PipelineContextInterface&SerializablePipelineContextInterface $context
      * @param array<PipelineStepInterface> $steps
      * @param string|null $pipelineName
      * @param bool $recordHistory
@@ -28,7 +29,7 @@ final class PipelineExecutor
      * @throws BindingResolutionException
      */
     public function execute(
-        PipelineContextInterface $context,
+        SerializablePipelineContextInterface & PipelineContextInterface $context,
         array $steps,
         ?string $pipelineName = null,
         bool $recordHistory = true
@@ -46,7 +47,7 @@ final class PipelineExecutor
     /**
      * Execute pipeline from serialized data.
      *
-     * @param array $contextData
+     * @param array<int|string, mixed> $contextData
      * @param array<class-string> $stepClasses
      * @param string|null $pipelineName
      * @param bool $recordHistory

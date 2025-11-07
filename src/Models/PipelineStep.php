@@ -28,6 +28,9 @@ class PipelineStep extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<PipelineRun, $this>
+     */
     public function run(): BelongsTo
     {
         return $this->belongsTo(PipelineRun::class, 'run_id', 'id');

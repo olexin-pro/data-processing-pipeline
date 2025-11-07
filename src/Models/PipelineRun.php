@@ -2,9 +2,13 @@
 
 namespace DataProcessingPipeline\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read Collection<int, PipelineStep> $steps
+ */
 class PipelineRun extends Model
 {
     protected $fillable = [
@@ -28,6 +32,9 @@ class PipelineRun extends Model
         ];
     }
 
+    /**
+     * @return HasMany<PipelineStep, $this>
+     */
     public function steps(): HasMany
     {
         return $this->hasMany(PipelineStep::class, 'run_id', 'id');

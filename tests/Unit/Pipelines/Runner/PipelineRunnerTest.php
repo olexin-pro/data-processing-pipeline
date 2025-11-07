@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace DataProcessingPipeline\Tests\Unit\Pipelines\Runner;
 
 use DataProcessingPipeline\Pipelines\Context\PipelineContext;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
 use DataProcessingPipeline\Tests\Unit\Pipelines\Runner\TestClasses\FailingStep;
 use DataProcessingPipeline\Tests\Unit\Pipelines\Runner\TestClasses\TestStep;
@@ -100,11 +103,11 @@ final class PipelineRunnerTest extends TestCase
             public bool $finalCalled = false;
 
             public function recordStep(
-                \DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface $context,
-                \DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface $step,
-                \DataProcessingPipeline\Pipelines\Enums\ResultStatus $status,
+                PipelineContextInterface $context,
+                PipelineStepInterface $step,
+                ResultStatus $status,
                 float $duration,
-                ?\DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface $result = null
+                ?PipelineResultInterface $result = null
             ): void {
                 $this->recordedSteps[] = [
                     'step' => get_class($step),
@@ -114,7 +117,7 @@ final class PipelineRunnerTest extends TestCase
             }
 
             public function recordFinal(
-                \DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface $context
+                PipelineContextInterface $context
             ): void {
                 $this->finalCalled = true;
             }
@@ -142,11 +145,11 @@ final class PipelineRunnerTest extends TestCase
             public bool $finalCalled = false;
 
             public function recordStep(
-                \DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface $context,
-                \DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface $step,
-                \DataProcessingPipeline\Pipelines\Enums\ResultStatus $status,
+                PipelineContextInterface $context,
+                PipelineStepInterface $step,
+                ResultStatus $status,
                 float $duration,
-                ?\DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface $result = null
+                ?PipelineResultInterface $result = null
             ): void {
                 $this->recordedSteps[] = [
                     'step' => get_class($step),

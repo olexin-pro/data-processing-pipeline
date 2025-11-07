@@ -17,6 +17,10 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
     use Macroable;
 
     /**
+     * @param array<int|string, mixed> $payload
+     * @param PipelineResultInterface[] $results
+     * @param array<int|string, mixed> $meta
+     * @param ConflictResolverInterface|null $conflictResolver
      * @throws BindingResolutionException
      */
     public function __construct(
@@ -33,6 +37,9 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
         $key = $result->getKey();
 
         if ($this->hasResult($key)) {
+            if ($this->conflictResolver === null) {
+                throw new \LogicException('Conflict resolver is not initialized');
+            }
             $existing = $this->results[$key];
             $resolved = $this->conflictResolver->resolve($existing, $result, $this);
             $this->results[$key] = $resolved;
@@ -46,6 +53,7 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
         return data_get($this->results, $key, $default);
     }
 
+    /** @inheritdoc */
     public function getResults(): array
     {
         return $this->results;
@@ -56,16 +64,19 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
         return data_get($this->payload, $key, $default);
     }
 
+    /** @inheritdoc */
     public function getPayload(): array
     {
         return $this->payload;
     }
 
+    /** @inheritdoc */
     public function getMeta(): array
     {
         return $this->meta;
     }
 
+    /** @inheritdoc */
     public function setMeta(array $metadata): void
     {
         $this->meta = $metadata;
@@ -76,6 +87,7 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
         return isset($this->results[$key]);
     }
 
+    /** @inheritdoc */
     public function toArray(): array
     {
         return [
@@ -85,21 +97,27 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
         ];
     }
 
+    /** @inheritdoc */
     public function build(): array
     {
         return array_map(fn(PipelineResultInterface $r) => $r->getData(), $this->results);
     }
 
+    /**
+     * @return array{
+     *     payload: array<string|int, mixed>,
+     *     results: array<string, mixed>,
+     *     meta: array{
+     *      errors?: list<array{step: string, message: string, trace: string}>
+     *  } & array<string, mixed>
+     * }
+     */
     public function jsonSerialize(): array
     {
         return $this->toArray();
     }
 
-
-
-    /**
-     * @throws BindingResolutionException
-     */
+    /** @inheritdoc */
     public static function fromArray(array $data): static
     {
         $context = new self(
@@ -115,9 +133,7 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
         return $context;
     }
 
-    /**
-     * @throws BindingResolutionException
-     */
+    /** @inheritdoc */
     public static function make(
         array $payload,
         array $results = [],

@@ -9,6 +9,7 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
 use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class ConflictResolver implements ConflictResolverInterface
 {
@@ -27,6 +28,11 @@ final class ConflictResolver implements ConflictResolverInterface
         };
     }
 
+    /**
+     * @param PipelineResultInterface $a
+     * @param PipelineResultInterface $b
+     * @return PipelineResultInterface
+     */
     private function merge(
         PipelineResultInterface $a,
         PipelineResultInterface $b
@@ -52,6 +58,13 @@ final class ConflictResolver implements ConflictResolverInterface
         );
     }
 
+    /**
+     * @param array<mixed> $a
+     * @param array<mixed> $b
+     * @param int|float $priorityA
+     * @param int|float $priorityB
+     * @return array<mixed>
+     */
     private static function deepMergeWithPriority(
         array $a,
         array $b,
@@ -97,19 +110,26 @@ final class ConflictResolver implements ConflictResolverInterface
         return $a;
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     private function custom(
         PipelineResultInterface $a,
         PipelineResultInterface $b,
         PipelineContextInterface $ctx
     ): PipelineResultInterface {
+        /** @var mixed $resolverClass */
         $resolverClass = $b->getMeta()['resolver'] ?? null;
 
         if (!$resolverClass || !is_subclass_of($resolverClass, ConflictResolverInterface::class)) {
             throw new \LogicException('Custom resolver not provided or invalid');
         }
 
-        /** @var ConflictResolverInterface $resolver */
-        $resolver = app($resolverClass);
+        /**
+         * @var class-string<ConflictResolverInterface> $resolverClass
+         * @var ConflictResolverInterface $resolver
+         */
+        $resolver = app()->make($resolverClass);
 
         return $resolver->resolve($a, $b, $ctx);
     }

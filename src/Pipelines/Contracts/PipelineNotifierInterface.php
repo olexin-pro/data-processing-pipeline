@@ -10,9 +10,10 @@ interface PipelineNotifierInterface
 {
     /**
      * Notify about successful pipeline execution.
+     *
      * @param PipelineContextInterface $context
      * @param string|null $pipelineName
-     * @param array $meta
+     * @param array<string, mixed> $meta
      */
     public function notifySuccess(
         PipelineContextInterface $context,
@@ -22,6 +23,10 @@ interface PipelineNotifierInterface
 
     /**
      * Notify about failed pipeline execution.
+     *
+     * @param Throwable $exception
+     * @param string|null $pipelineName
+     * @param array<string, mixed> $meta
      */
     public function notifyFailure(
         Throwable $exception,

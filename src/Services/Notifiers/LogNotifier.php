@@ -10,10 +10,16 @@ use Illuminate\Support\Facades\Log;
 final class LogNotifier
 {
     public function __construct(
-        private string $channel = 'pipeline'
+        private readonly string $channel = 'pipeline'
     ) {
     }
 
+    /**
+     * @param PipelineContextInterface $context
+     * @param string|null $pipelineName
+     * @param array<string, mixed> $meta
+     * @return void
+     */
     public function notifySuccess(
         PipelineContextInterface $context,
         ?string $pipelineName = null,
@@ -28,6 +34,12 @@ final class LogNotifier
         ]);
     }
 
+    /**
+     * @param \Throwable $exception
+     * @param string|null $pipelineName
+     * @param array<mixed> $meta
+     * @return void
+     */
     public function notifyFailure(
         \Throwable $exception,
         ?string $pipelineName = null,

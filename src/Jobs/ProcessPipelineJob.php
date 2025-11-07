@@ -22,10 +22,11 @@ final class ProcessPipelineJob implements ShouldQueue
     use SerializesModels;
 
     /**
-     * @param array $contextData Serialized context data
+     * @param array<int|string, mixed> $contextData Serialized context data
      * @param array<class-string> $stepClasses Step class names
      * @param string|null $pipelineName Pipeline name for history recording
      * @param bool $recordHistory Enable/disable history recording
+     * @param class-string<PipelineNotifierInterface>|null $notifierClass
      */
     public function __construct(
         private readonly array $contextData,
@@ -81,6 +82,9 @@ final class ProcessPipelineJob implements ShouldQueue
      */
     private function resolveNotifier(): PipelineNotifierInterface
     {
+        if ($this->notifierClass === null) {
+            throw new \LogicException('Notifier class not provided.');
+        }
         return app()->makeWith($this->notifierClass);
     }
 

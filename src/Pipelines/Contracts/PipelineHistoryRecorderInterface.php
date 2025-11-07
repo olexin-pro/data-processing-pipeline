@@ -16,5 +16,5 @@ interface PipelineHistoryRecorderInterface
         ?PipelineResultInterface $result = null
     ): void;
 
-    public function recordFinal(PipelineContextInterface $context): void;
+    public function recordFinal(SerializablePipelineContextInterface & PipelineContextInterface $context): void;
 }

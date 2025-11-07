@@ -10,6 +10,7 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
+use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
 
 final class PipelineHistoryRecorder implements PipelineHistoryRecorderInterface
@@ -49,7 +50,11 @@ final class PipelineHistoryRecorder implements PipelineHistoryRecorderInterface
         ]);
     }
 
-    public function recordFinal(PipelineContextInterface $context): void
+    /**
+     * @param PipelineContextInterface&SerializablePipelineContextInterface $context
+     * @return void
+     */
+    public function recordFinal(SerializablePipelineContextInterface & PipelineContextInterface $context): void
     {
         if (!$this->enabled || $this->runId === null) {
             return;

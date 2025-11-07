@@ -9,6 +9,7 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineRunnerInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
+use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
 use Illuminate\Support\Facades\Log;
 
@@ -23,7 +24,7 @@ final class PipelineRunner implements PipelineRunnerInterface
     ) {
     }
 
-    public function run(PipelineContextInterface $context): PipelineContextInterface
+    public function run(SerializablePipelineContextInterface & PipelineContextInterface $context): PipelineContextInterface
     {
         foreach ($this->steps as $step) {
             $start = microtime(true);
@@ -33,6 +34,7 @@ final class PipelineRunner implements PipelineRunnerInterface
             try {
                 $result = $step->handle($context);
                 if (!$result instanceof PipelineResultInterface) {
+                    /** @var mixed $result */
                     if (! is_null($result)) {
                         Log::warning(sprintf(
                             'Pipeline step %s returned invalid result of type %s',

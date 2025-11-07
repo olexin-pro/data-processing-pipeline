@@ -11,10 +11,20 @@ use JsonSerializable;
 interface PipelineResultInterface extends JsonSerializable
 {
     public function getKey(): string;
+
+    /**
+     * @return int|float|array<mixed>|bool|string|null
+     */
     public function getData(): int|float|array|bool|string|null;
     public function getPolicy(): ConflictPolicy;
     public function getPriority(): int;
     public function getProvenance(): string;
     public function getStatus(): ResultStatus;
+
+    /**
+     * @return array{
+     *           resolver?: class-string<ConflictResolverInterface>|null
+     *       } & array<string|int, mixed>
+     */
     public function getMeta(): array;
 }
