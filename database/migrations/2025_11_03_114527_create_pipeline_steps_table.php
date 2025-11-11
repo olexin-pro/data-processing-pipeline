@@ -20,7 +20,6 @@ return new class () extends Migration {
             $table->decimal('duration_ms', 10, 2);
             $table->json('result')->nullable();
             $table->dateTimeTz('created_at');
-
             $table->index('run_id');
             $table->index('step_class');
         });

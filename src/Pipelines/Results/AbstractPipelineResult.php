@@ -9,11 +9,9 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineResultInterface;
 use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
 use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
-use Illuminate\Support\Traits\Macroable;
 
 abstract class AbstractPipelineResult implements PipelineResultInterface, SerializablePipelineResultInterface
 {
-
     /**
      * @param string $key
      * @param int|float|array<mixed>|bool|string|null $data

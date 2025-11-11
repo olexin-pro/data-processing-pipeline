@@ -148,14 +148,14 @@ final class PipelineIntegrationTest extends TestCase
     {
         $context = new PipelineContext(['input' => 'data']);
 
-        $nullStep = new class() implements PipelineStepInterface {
+        $nullStep = new class () implements PipelineStepInterface {
             public function handle(PipelineContextInterface $context): ?PipelineResultInterface
             {
                 return null;
             }
         };
 
-        $validStep = new class() implements PipelineStepInterface {
+        $validStep = new class () implements PipelineStepInterface {
             public function handle(PipelineContextInterface $context): ?PipelineResultInterface
             {
                 return new GenericPipelineResult('processed', ['ok' => true]);

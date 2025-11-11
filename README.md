@@ -5,10 +5,6 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![codecov](https://codecov.io/github/olexin-pro/data-processing-pipeline/graph/badge.svg?token=V8AZSQJGN7)](https://codecov.io/github/olexin-pro/data-processing-pipeline)
 
-> ⚠️ **Work in progress**
-> This package is currently under active development and **not recommended for production use**.
-> APIs and behavior may change without notice.
-
 A robust, strictly-typed, and extensible data processing pipeline system for Laravel applications. Process data through a chain of isolated steps with built-in conflict resolution, priority handling, and optional execution history tracking.
 
 ## ✨ Features
@@ -21,33 +17,6 @@ A robust, strictly-typed, and extensible data processing pipeline system for Lar
 * 🚀 **Queue-Safe** - Fully serializable for Laravel queues
 * 🧩 **Extensible** - Easy to add custom steps and conflict resolvers
 * 🧪 **Well Tested** - Comprehensive test coverage
-
-### 📑 Quick Links
-
-* [📦 Installation](#-installation)
-* [🚀 Quick Start](#-quick-start)
-
-    * [1. Create a Pipeline Step](#1-create-a-pipeline-step)
-    * [2. Run the Pipeline](#2-run-the-pipeline)
-    * [3. Queue Execution](#3-queue-execution)
-* [📚 Core Concepts](#-core-concepts)
-
-    * [Pipeline Context](#pipeline-context)
-    * [Pipeline Results](#pipeline-results)
-    * [Conflict Policies](#conflict-policies)
-* [🔧 Advanced Usage](#-advanced-usage)
-
-    * [Priority System](#priority-system)
-    * [Execution History](#execution-history)
-    * [Error Handling](#error-handling)
-    * [Dynamic Steps](#dynamic-steps)
-    * [Conditional Steps](#conditional-steps)
-* [🎯 Real-World Example](#-real-world-example)
-* [🧪 Testing](#-testing)
-* [📖 API Reference](#-api-reference)
-
-    * [PipelineContext](#pipelinecontext)
-    * [GenericPipelineResult](#genericpipelineresult)
 
 ---
 
@@ -600,6 +569,45 @@ $data = $result->build();
 ]
 */
 
+```
+
+## 🛠 Step Generator
+
+Create pipeline steps with a single command. By default, classes are placed under `App\Pipeline\Steps` and saved to `app/Pipeline/Steps`.
+
+```bash
+php artisan make:pipeline-step EmailFormatterStep
+# => app/Pipeline/Steps/EmailFormatterStep.php
+# => namespace App\Pipeline\Steps;
+````
+
+### Nested directories
+
+```bash
+php artisan make:step Order/TotalCalculationStep
+# => app/Pipeline/Steps/Order/TotalCalculationStep.php
+# => namespace App\Pipeline\Steps\Order;
+```
+
+### Options
+
+* `--policy=` — conflict policy (`MERGE|OVERWRITE|SKIP|CUSTOM`). Default: `MERGE`.
+* `--priority=` — result priority (int). Default: `10`.
+* `--key=` — result key (defaults to the snake_case of the class name without the `Step` suffix, e.g., `EmailFormatterStep` → `email_formatter`).
+* `--force` — overwrite the file if it already exists.
+
+Examples:
+
+```bash
+php artisan make:pipeline-step EmailValidatorStep --policy=MERGE --priority=20
+php artisan make:pipeline-step "Order/Discount/ApplyCouponStep" --key=coupon --policy=OVERWRITE
+```
+
+### Customizing the stub
+
+```bash
+php artisan vendor:publish --provider="DataProcessingPipeline\PipelineServiceProvider" --tag=pipeline-stubs
+# then edit stubs/pipeline.step.stub
 ```
 
 ---

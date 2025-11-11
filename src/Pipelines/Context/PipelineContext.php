@@ -92,7 +92,7 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
     {
         return [
             'payload' => $this->payload,
-            'results' => array_map(fn($r) => $r->jsonSerialize(), $this->results),
+            'results' => array_map(fn ($r) => $r->jsonSerialize(), $this->results),
             'meta' => $this->meta,
         ];
     }
@@ -100,7 +100,7 @@ final class PipelineContext implements PipelineContextInterface, SerializablePip
     /** @inheritdoc */
     public function build(): array
     {
-        return array_map(fn(PipelineResultInterface $r) => $r->getData(), $this->results);
+        return array_map(fn (PipelineResultInterface $r) => $r->getData(), $this->results);
     }
 
     /**

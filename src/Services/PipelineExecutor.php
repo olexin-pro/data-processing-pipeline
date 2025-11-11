@@ -9,7 +9,6 @@ use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
 use DataProcessingPipeline\Pipelines\Contracts\SerializablePipelineContextInterface;
-use DataProcessingPipeline\Pipelines\History\PipelineHistoryRecorder;
 use DataProcessingPipeline\Pipelines\Runner\PipelineRunner;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Traits\Macroable;

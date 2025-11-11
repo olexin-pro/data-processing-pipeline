@@ -19,7 +19,6 @@ return new class () extends Migration {
             $table->jsonb('meta')->nullable();
             $table->dateTimeTz('created_at');
             $table->dateTimeTz('finished_at')->nullable();
-
             $table->index(['pipeline_name', 'created_at']);
             $table->index('status');
         });

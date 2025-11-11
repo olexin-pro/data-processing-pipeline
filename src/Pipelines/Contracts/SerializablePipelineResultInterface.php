@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace DataProcessingPipeline\Pipelines\Contracts;
 
-use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
-use DataProcessingPipeline\Pipelines\Enums\ResultStatus;
-
 /**
  * @phpstan-type Meta array{
  *     resolver?: class-string<ConflictResolverInterface>|null

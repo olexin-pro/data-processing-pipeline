@@ -2,6 +2,7 @@
 
 namespace DataProcessingPipeline;
 
+use DataProcessingPipeline\Console\MakePipelineStepCommand;
 use DataProcessingPipeline\Pipelines\Contracts\ConflictResolverInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineHistoryRecorderInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineNotifierInterface;
@@ -58,6 +59,15 @@ class PipelineServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
+
+            $this->commands([
+                MakePipelineStepCommand::class,
+            ]);
+
+            $this->publishes([
+                __DIR__.'/../stubs/pipeline.step.stub' => base_path('stubs/pipeline.step.stub'),
+            ], 'pipeline-stubs');
+
             // $this->publishes([
             //     __DIR__ . '/../config/pipeline.php' => config_path('pipeline.php'),
             // ], 'pipeline-config');

@@ -24,8 +24,8 @@ final class PipelineExecutorTest extends TestCase
      */
     public function test_execute_from_array_runs_steps_and_returns_context(): void
     {
-        app()->bind(TestStep::class, fn() => new TestStep('result1', ['foo' => 'bar']));
-        app()->bind(FailingStep::class, fn() => new TestStep('result2', ['baz' => 123])); // заменяем на успешный
+        app()->bind(TestStep::class, fn () => new TestStep('result1', ['foo' => 'bar']));
+        app()->bind(FailingStep::class, fn () => new TestStep('result2', ['baz' => 123])); // заменяем на успешный
 
         $executor = new PipelineExecutor();
         $context = $executor->run(
@@ -73,7 +73,7 @@ final class PipelineExecutorTest extends TestCase
         $result = $executor->execute($context, [], null, true);
         $this->assertInstanceOf(PipelineContext::class, $result);
 
-        app()->bind(TestStep::class, fn() => new TestStep('r', ['ok' => true]));
+        app()->bind(TestStep::class, fn () => new TestStep('r', ['ok' => true]));
 
         $result = $executor->run(
             contextData: [],

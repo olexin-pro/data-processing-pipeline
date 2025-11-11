@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace DataProcessingPipeline\Tests\Feature\Jobs;
 
 use DataProcessingPipeline\Jobs\ProcessPipelineJob;
-use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
 use DataProcessingPipeline\Pipelines\Contracts\PipelineNotifierInterface;
 use DataProcessingPipeline\Services\PipelineExecutor;
 use DataProcessingPipeline\Tests\Unit\Pipelines\Runner\TestClasses\FailingStep;
 use DataProcessingPipeline\Tests\Unit\Pipelines\Runner\TestClasses\TestStep;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
@@ -38,9 +36,9 @@ final class ProcessPipelineJobTest extends TestCase
     public function test_job_executes_successfully_and_notifies(): void
     {
         // Регаем шаг в контейнер
-        app()->bind(TestStep::class, fn() => new TestStep('ok', ['value' => 42]));
+        app()->bind(TestStep::class, fn () => new TestStep('ok', ['value' => 42]));
 
-        $notifier = new class implements PipelineNotifierInterface {
+        $notifier = new class () implements PipelineNotifierInterface {
             public bool $successCalled = false;
             public bool $failureCalled = false;
 
@@ -80,11 +78,13 @@ final class ProcessPipelineJobTest extends TestCase
                     && $context['error'] === 'Step failed intentionally';
             });
 
-        $notifier = new class implements PipelineNotifierInterface {
+        $notifier = new class () implements PipelineNotifierInterface {
             public bool $successCalled = false;
             public bool $failureCalled = false;
 
-            public function notifySuccess($context, ?string $pipelineName = null, array $meta = []): void {}
+            public function notifySuccess($context, ?string $pipelineName = null, array $meta = []): void
+            {
+            }
 
             public function notifyFailure(\Throwable $exception, ?string $pipelineName = null, array $meta = []): void
             {
@@ -95,7 +95,7 @@ final class ProcessPipelineJobTest extends TestCase
         app()->instance('FailNotifier', $notifier);
 
         // Регистрируем шаг, который падает
-        app()->bind(FailingStep::class, fn() => new FailingStep());
+        app()->bind(FailingStep::class, fn () => new FailingStep());
 
         $job = new ProcessPipelineJob(
             contextData: [],

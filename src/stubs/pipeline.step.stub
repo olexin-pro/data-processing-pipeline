@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use DataProcessingPipeline\Pipelines\Contracts\PipelineStepInterface;
+use DataProcessingPipeline\Pipelines\Contracts\PipelineContextInterface;
+use DataProcessingPipeline\Pipelines\Results\GenericPipelineResult;
+use DataProcessingPipeline\Pipelines\Enums\ConflictPolicy;
+
+final class {{ class }} implements PipelineStepInterface
+{
+    public function handle(PipelineContextInterface $context): GenericPipelineResult
+    {
+        // from package stub
+        return new GenericPipelineResult(
+            key: '{{ key }}',
+            data: [],
+            policy: ConflictPolicy::{{ policy }},
+            priority: {{ priority }},
+            provenance: self::class
+        );
+    }
+}
